@@ -9,6 +9,7 @@
     "author": "Bowden Kelly",
     "license": "MIT",
     "scripts": {
+        "develop": "npm run watch-node",
         "build": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
         "build-sass": "node-sass src/public/css/main.scss dist/public/css/main.css",
         "build-ts": "tsc",

@@ -69,10 +69,10 @@ app.use((req, res, next) => {
     req.path !== "/signup" &&
     !req.path.match(/^\/auth/) &&
     !req.path.match(/\./)) {
-        req.session.returnTo = req.path;
+        (req.session as any).returnTo = req.path;
     } else if (req.user &&
     req.path == "/account") {
-        req.session.returnTo = req.path;
+        (req.session as any).returnTo = req.path;
     }
     next();
 });
@@ -113,7 +113,7 @@ app.get("/api/facebook", passportConfig.isAuthenticated, passportConfig.isAuthor
  */
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
 app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
-    res.redirect(req.session.returnTo || "/");
+    res.redirect((req.session as any).returnTo || "/");
 });
 
 export default app;
