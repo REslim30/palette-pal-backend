@@ -43,7 +43,7 @@ describe("Palette document", () => {
       const paletteInitializerColor = paletteInitalizer.colors[i];
       const { _id, colorWithoutId } = color.toJSON();
       expect(_.isEqual(colorWithoutId, paletteInitializerColor));
-    })
+    });
   });
 
   test("should throw an error when color name is missing", async () => {
@@ -65,7 +65,7 @@ describe("Palette document", () => {
     paletteInitalizer.colors = paletteInitalizer.colors.map((color: Color) => {
       color.name = "";
       return color;
-    })
+    });
     
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
   });
@@ -77,12 +77,12 @@ describe("Palette document", () => {
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
     paletteInitalizer.colors[0].shades[0] = "#ffgffa";
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
-  })
+  });
 
   test("should throw an error if shades are empty", async () => {
     paletteInitalizer.colors[0].shades[0] = "";
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
-  })
+  });
 
   describe("After saving to database", () => {
     let palette: PaletteDocument;
@@ -124,7 +124,7 @@ function getPaletteInitializer() {
         shades: ["#FF00FF", "#123456"],
       },
     ],
-  }
+  };
 }
 
 function validPaletteDocument() {

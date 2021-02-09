@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
 export type Palette = {
-  name: string,
-  colors: Color[],
+  name: string;
+  colors: Color[];
 };
 
 export type Color = {
-  name: string,
-  shades: string[],
+  name: string;
+  shades: string[];
 };
 export type PaletteDocument = mongoose.Document & {
   name: string;
