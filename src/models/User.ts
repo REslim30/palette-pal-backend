@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bycrypt from "bcrypt-nodejs";
+import bycrypt from "bcrypt";
 import { NextFunction } from "express";
 
 export type User = {

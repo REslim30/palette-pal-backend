@@ -1,7 +1,7 @@
 import { UserDocument, User } from "../../src/models/User";
 import mongoose from "mongoose";
 import { connectToMongoDB } from "../util/connectToMongoDB";
-import bcrypt from "bcrypt-nodejs";
+import bcrypt from "bcrypt";
 
 describe("User model", () => {
   let db: mongoose.Connection;
