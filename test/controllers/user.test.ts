@@ -96,6 +96,9 @@ describe("User routes", () => {
         expect(res.body.errors.password.kind).toBe('required');
       });
     })
-
   });
+
+  describe('/login', () => {
+    
+  })
 });
