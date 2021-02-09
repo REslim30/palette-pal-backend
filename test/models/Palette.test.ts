@@ -1,6 +1,7 @@
 import { Palette, Color, PaletteDocument } from "../../src/models/Palette";
 import mongoose from "mongoose";
 import _ from "lodash";
+import { connectToMongoDB } from "../util/connectToMongoDB";
 
 
 describe("Palette document", () => {
@@ -13,17 +14,17 @@ describe("Palette document", () => {
     await db.close();
   });
 
+  // Clean up database
+  afterEach(async () => {
+    await Palette.deleteMany({});
+  });
+
   // Reset initializers
   let validPalette: PaletteDocument;
   let paletteInitalizer: Palette;
   beforeEach(() => {
     paletteInitalizer = getPaletteInitializer();
     validPalette = validPaletteDocument();
-  });
-
-  // Clean up database
-  afterEach(async () => {
-    await Palette.deleteMany({});
   });
 
   test("can be constructed", () => {});
@@ -129,16 +130,4 @@ function getPaletteInitializer() {
 
 function validPaletteDocument() {
   return new Palette(getPaletteInitializer());
-}
-
-async function connectToMongoDB() {
-  await mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  const db = mongoose.connection;
-  db.on("error", () => {
-    throw new Error("couldn't connect to database");
-  });
-  return db;
 }

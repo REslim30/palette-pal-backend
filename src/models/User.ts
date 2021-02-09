@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import bycrypt from "bcrypt-nodejs";
+import { NextFunction } from "express";
 
 export type User = {
   username: string;
@@ -18,7 +20,13 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  }
+  },
 });
+
+// userSchema.pre("save", function (this: UserDocument, next: NextFunction) {
+//   const user = this;
+//   if (!user.isModified("password")) return next();
+//   const hashedPassword = bycrypt.hash();
+// });
 
 export const User = mongoose.model<UserDocument>("User", userSchema);

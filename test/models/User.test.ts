@@ -1,6 +1,22 @@
 import { UserDocument, User } from "../../src/models/User";
+import mongoose from "mongoose";
+import { connectToMongoDB } from "../util/connectToMongoDB";
+import bcrypt from "bcrypt-nodejs";
 
 describe("User model", () => {
+  let db: mongoose.Connection;
+  beforeAll(async () => {
+    db = await connectToMongoDB();
+  });
+
+  afterAll(async () => {
+    await db.close();
+  });
+
+  // Clean up database
+  afterEach(async () => {
+    await User.deleteMany({});
+  });
   
   let validUser: UserDocument;
   let userInitializer: User;
@@ -43,6 +59,13 @@ describe("User model", () => {
     validUser.password = "";
     await expect(validUser.save()).rejects.toThrow();
   })
+
+  test("should save password as hash", async (done) => {
+    const user = await validUser.save()
+    expect(user.password).not.toBe(userInitializer.password);
+
+    await bcrypt.compare(userInitializer.password, user.password);
+  });
 });
 
 function getUserInitializer() {
