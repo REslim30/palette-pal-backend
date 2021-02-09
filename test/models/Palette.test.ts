@@ -15,7 +15,7 @@ describe("Palette document", () => {
 
   // Reset initializers
   let validPalette: PaletteDocument;
-  let paletteInitalizer: any;
+  let paletteInitalizer: Palette;
   beforeEach(() => {
     paletteInitalizer = getPaletteInitializer();
     validPalette = validPaletteDocument();
@@ -47,7 +47,7 @@ describe("Palette document", () => {
   });
 
   test("should throw an error when color name is missing", () => {
-    paletteInitalizer.colors = paletteInitalizer.colors.map((color) => {
+    paletteInitalizer.colors = paletteInitalizer.colors.map((color: Color) => {
       delete color.name;
       return color;
     });
@@ -62,7 +62,7 @@ describe("Palette document", () => {
   });
 
   test("should throw an error if color name is empty", () => {
-    paletteInitalizer.colors = paletteInitalizer.colors.map((color) => {
+    paletteInitalizer.colors = paletteInitalizer.colors.map((color: Color) => {
       color.name = "";
       return color;
     })
@@ -93,11 +93,23 @@ describe("Palette document", () => {
       palette.set({ name: "New name" });
       await palette.save();
       palettes = await Palette.find({});
+
       expect(palettes.length).toBe(1);
       expect(palettes[0].equals(palette)).toBe(true);
+      expect(palette.colors).toBeTruthy();
     });
   });
 });
+
+type Color = {
+  name: string,
+  shades: string[],
+}
+
+type Palette = {
+  name: string,
+  colors: Color[],
+}
 
 function getPaletteInitializer() {
   return {
