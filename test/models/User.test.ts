@@ -33,21 +33,21 @@ describe("User model", () => {
     validUser.username = "";
 
     await expect(validUser.save()).rejects.toThrow();
-  })
+  });
 
   test("should have an email field", () => {
     expect(validUser.email).toBe(userInitializer.email);
-  })
+  });
 
   test("should throw if email field is empty", async () => {
     validUser.email = "";
     await expect(validUser.save()).rejects.toThrow();
-  })
+  });
 
   test("should throw if email is an invalid email", async () => {
-    validUser.email = "randomstring"
+    validUser.email = "randomstring";
     await expect(validUser.save()).rejects.toThrow();
-    validUser.email = "ok@ok"
+    validUser.email = "ok@ok";
     await expect(validUser.save()).rejects.toThrow();
   });
 
@@ -58,10 +58,10 @@ describe("User model", () => {
   test("should throw if password is empty", async () => {
     validUser.password = "";
     await expect(validUser.save()).rejects.toThrow();
-  })
+  });
 
   test("should save password as hash", async () => {
-    const user = await validUser.save()
+    const user = await validUser.save();
     expect(user.password).not.toBe(userInitializer.password);
 
     const result = await bcrypt.compare(userInitializer.password, user.password);
@@ -74,5 +74,5 @@ function getUserInitializer() {
     username: "testUser18",
     email: "testUser18@gmail.com",
     password: "testUser18"
-  }
+  };
 }

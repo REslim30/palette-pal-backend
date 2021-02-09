@@ -6,9 +6,10 @@ import mongo from "connect-mongo";
 import flash from "express-flash";
 import path from "path";
 import mongoose from "mongoose";
-import passport from "passport";
 import bluebird from "bluebird";
 import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
+import passport from "./config/passport";
+import morgan from "morgan";
 
 const MongoStore = mongo(session);
 
@@ -32,6 +33,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
 
 // Express configuration
 app.set("port", process.env.PORT || 3000);
+app.use(morgan("tiny"));
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -53,6 +55,6 @@ app.use((req, res, next) => {
 });
 
 // Authentication routes
-app.post('/register', userController.postRegister);
-app.get('/users/me', userController.getUsersMe);
+app.post("/register", userController.postRegister);
+app.get("/users/me", passport.authenticate("jwt", { session: false }), userController.getUsersMe);
 export default app;

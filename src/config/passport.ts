@@ -3,16 +3,18 @@ import {
   ExtractJwt as ExtractJWT,
 } from "passport-jwt";
 import passport from "passport";
+import { User } from "../models/User";
+import logger from "../util/logger";
 
 // JWT strategy
 passport.use(new JWTStrategy({
-  secretOrKey: 'secret', //TODO get better secret
+  secretOrKey: "secret", //TODO get better secret
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
 }, authenticateUser));
 
-function authenticateUser(
-  jwtPayload: any,
-  done: Function
-) {
-
+function authenticateUser(jwtPayload: any, done: Function) {
+  logger.debug("authenticating user");
+  done(new Error("unimplemented"));
 }
+
+export default passport;
