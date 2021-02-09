@@ -1,1 +1,1 @@
-process.env.MONGO_URI = "mongodb+srv://giahuydo99:giahuydo99@cluster0.kdzfk.mongodb.net/palette_test?retryWrites=true&w=majority"
+process.env.MONGO_URI = "mongodb://localhost:27017/test"
