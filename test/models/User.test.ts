@@ -60,7 +60,7 @@ describe("User model", () => {
     await expect(validUser.save()).rejects.toThrow();
   })
 
-  test("should save password as hash", async (done) => {
+  test("should save password as hash", async () => {
     const user = await validUser.save()
     expect(user.password).not.toBe(userInitializer.password);
 

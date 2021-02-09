@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bycrypt from "bcrypt";
+import bcrypt from "bcrypt";
 import { NextFunction } from "express";
 
 export type User = {
@@ -23,10 +23,15 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// userSchema.pre("save", function (this: UserDocument, next: NextFunction) {
-//   const user = this;
-//   if (!user.isModified("password")) return next();
-//   const hashedPassword = bycrypt.hash();
-// });
+// Hash passwords before saving
+userSchema.pre("save", function (this: UserDocument, next: NextFunction) {
+  const user = this;
+  if (!user.isModified("password")) return next();
+  bcrypt.hash(user.password, 10, (err: Error, hashedPassword) => {
+    if (err) return next(err);
+    user.password = hashedPassword;
+    next();
+  });
+});
 
 export const User = mongoose.model<UserDocument>("User", userSchema);
