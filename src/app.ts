@@ -13,7 +13,6 @@ import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
 const MongoStore = mongo(session);
 
 // Controllers (route handlers)
-import * as userController from "./controllers/user";
 
 
 // Create Express server
