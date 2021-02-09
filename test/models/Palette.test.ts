@@ -1,4 +1,4 @@
-import { Palette, PaletteDocument } from "../../src/models/Palette";
+import { Palette, Color, PaletteDocument } from "../../src/models/Palette";
 import mongoose from "mongoose";
 import _ from "lodash";
 
@@ -35,7 +35,7 @@ describe("Palette document", () => {
   test("should throw an error when name is missing", async () => {
     delete paletteInitalizer.name;
 
-    expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
   });
 
   test("can access colors", () => {
@@ -46,29 +46,43 @@ describe("Palette document", () => {
     })
   });
 
-  test("should throw an error when color name is missing", () => {
+  test("should throw an error when color name is missing", async () => {
     paletteInitalizer.colors = paletteInitalizer.colors.map((color: Color) => {
       delete color.name;
       return color;
     });
 
-    expect((new Palette(paletteInitalizer)).save()).rejects.toThrow();
+    await expect((new Palette(paletteInitalizer)).save()).rejects.toThrow();
   });
 
-  test("should throw an error if palette name is empty", () => {
+  test("should throw an error if palette name is empty", async () => {
     paletteInitalizer.name = "";
 
-    expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
   });
 
-  test("should throw an error if color name is empty", () => {
+  test("should throw an error if color name is empty", async () => {
     paletteInitalizer.colors = paletteInitalizer.colors.map((color: Color) => {
       color.name = "";
       return color;
     })
     
-    expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
   });
+
+  test("should throw an error if shades are not a hex code", async () => {
+    paletteInitalizer.colors[0].shades[0] = "FFFFFF";
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+    paletteInitalizer.colors[0].shades[0] = "#12345";
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+    paletteInitalizer.colors[0].shades[0] = "#ffgffa";
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+  })
+
+  test("should throw an error if shades are empty", async () => {
+    paletteInitalizer.colors[0].shades[0] = "";
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+  })
 
   describe("After saving to database", () => {
     let palette: PaletteDocument;
@@ -100,16 +114,6 @@ describe("Palette document", () => {
     });
   });
 });
-
-type Color = {
-  name: string,
-  shades: string[],
-}
-
-type Palette = {
-  name: string,
-  colors: Color[],
-}
 
 function getPaletteInitializer() {
   return {
