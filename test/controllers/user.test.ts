@@ -2,6 +2,7 @@ import request from "supertest";
 import app from "../../src/app";
 import _ from "lodash";
 import { User } from "../../src/models/User";
+import { response } from "express";
 
 describe("User routes", () => {
   describe("/register", () => {
@@ -100,5 +101,13 @@ describe("User routes", () => {
 
   describe('/login', () => {
     
+  })
+
+  describe('/users/me', () => {
+    test("should respond with 401 if unauthorized", async () => {
+      await request(app)
+        .get('/users/me')
+        .expect(401)
+    });
   })
 });

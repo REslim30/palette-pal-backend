@@ -54,4 +54,5 @@ app.use((req, res, next) => {
 
 // Authentication routes
 app.post('/register', userController.postRegister);
+app.get('/users/me', userController.getUsersMe);
 export default app;

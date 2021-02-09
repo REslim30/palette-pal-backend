@@ -1,8 +1,18 @@
-import { Strategy as LocalStrategy } from "passport-local";
+import {
+  Strategy as JWTStrategy,
+  ExtractJwt as ExtractJWT,
+} from "passport-jwt";
 import passport from "passport";
 
-passport.use(new LocalStrategy(authenticateUser))
+// JWT strategy
+passport.use(new JWTStrategy({
+  secretOrKey: 'secret', //TODO get better secret
+  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+}, authenticateUser));
 
-function authenticateUser(identifer: string, password: string, done: Function) {
+function authenticateUser(
+  jwtPayload: any,
+  done: Function
+) {
 
 }

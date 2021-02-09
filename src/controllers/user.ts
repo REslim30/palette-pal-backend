@@ -18,3 +18,7 @@ export async function postRegister(req: Request, res: Response) {
     });
   }
 }
+
+export async function getUsersMe(req: Request, res: Response) {
+  return res.sendStatus(500);
+}
