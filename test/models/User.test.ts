@@ -64,7 +64,8 @@ describe("User model", () => {
     const user = await validUser.save()
     expect(user.password).not.toBe(userInitializer.password);
 
-    await bcrypt.compare(userInitializer.password, user.password);
+    const result = await bcrypt.compare(userInitializer.password, user.password);
+    expect(result).toBe(true);
   });
 });
 
