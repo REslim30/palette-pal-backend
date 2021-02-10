@@ -80,6 +80,26 @@ describe("User model", () => {
     userInitializer.username = "differentUsername"
     await expect(new User(userInitializer).save()).rejects.toThrow(MongoError)
   })
+
+  describe("findByIdentifier", () => {
+    test("should be able to search using email identifier", async () => {
+      const initialUser = await new User(userInitializer).save()
+      let user = User.findByIdentifier(userInitializer.email);
+      expect((await user).equals(initialUser)).toBe(true);
+    })
+
+    test("should be able to search using email identifier", async () => {
+      const initialUser = await new User(userInitializer).save()
+      let user = User.findByIdentifier(userInitializer.username);
+      expect((await user).equals(initialUser)).toBe(true);
+    })
+
+    test("should return null if identifier doesn't exist", async () => {
+      const initialUser = await new User(userInitializer).save()
+      let user = User.findByIdentifier("doesntexistidentifier");
+      expect(user).resolves.toBe(null);
+    })
+  })
 });
 
 function getUserInitializer() {

@@ -57,4 +57,5 @@ app.use((req, res, next) => {
 // Authentication routes
 app.post("/register", userController.postRegister);
 app.get("/users/me", passport.authenticate("jwt", { session: false }), userController.getUsersMe);
+app.post("/login", userController.postLogin)
 export default app;
