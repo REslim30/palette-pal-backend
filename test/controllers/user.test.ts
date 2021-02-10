@@ -192,6 +192,16 @@ describe("User routes", () => {
       expect(res.body.password).toBe(undefined);
       expect(_.isMatch(res.body, _.omit(user, ["password"])));
     });
+
+    test("should respond with a 401 if expiry is past", async () => {
+      const userDocument = await User.findOne({ email: user.email });
+      const jwtString = jwt.sign({ sub: userDocument.id, exp: Math.trunc((new Date).getTime()/1000 - 5) }, process.env.ACCESS_TOKEN_SECRET)
+
+      const authRes = await request(app)
+        .get("/users/me")
+        .set("Authorization", `Bearer ${jwtString}`)
+        .expect(401);
+    });
   });
 });
 
