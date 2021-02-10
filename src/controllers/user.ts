@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "../models/User";
+import { User, UserDocument } from "../models/User";
 import jwt from "jsonwebtoken";
 import _ from "lodash";
 import logger from "../util/logger";
 import { ACCESS_TOKEN_SECRET } from "../util/secrets";
+import { identifier } from "@babel/types";
 export async function postRegister(req: Request, res: Response) {
   if (req.get("Content-Type") !== "application/json")
     return res.sendStatus(415);
@@ -25,17 +26,20 @@ export async function postRegister(req: Request, res: Response) {
         return res.status(400).send({
           errors: error.errors,
         });
-        
+
       case "MongoError":
-        const errors: any = {}
+        const errors: any = {};
         if (error.keyValue.username !== undefined)
-          errors.username = { kind: "unique", message: "Username already exists." }
-         
+          errors.username = {
+            kind: "unique",
+            message: "Username already exists.",
+          };
+
         if (error.keyValue.email !== undefined)
           errors.email = { kind: "unique", message: "email already exists." };
-        
-        return res.status(400).send({errors});
-      
+
+        return res.status(400).send({ errors });
+
       default:
         return res.status(400).send("invalid user.");
     }
@@ -43,26 +47,37 @@ export async function postRegister(req: Request, res: Response) {
 }
 
 export async function postLogin(req: Request, res: Response) {
-  if (req.body.password === undefined || req.body.identifier === undefined)
-    return res.status(400).send({message: "Missing identifer or password field"})
-  
+  if (typeof req.body.password !== "string" || typeof req.body.identifier !== "string")
+    return res
+      .status(400)
+      .send({ message: "Missing identifer or password field" });
+
   const user = await User.findByIdentifier(req.body.identifier);
   if (user === null)
-    return res.status(400).send({errorType: "invalid-credentials"})
-  
-  user.matchPassword(req.body.identifier)
-    .then((isMatched) => {
-      if (isMatched) {
-        return res.status(200).send({ 
-          jwt: jwt.sign( { _id: user.id }, ACCESS_TOKEN_SECRET),
-          user: user.toSendable(),
-        });
-      } else {
+    return res
+      .status(400)
+      .send({
+        errorType: "invalid-credentials",
+        message: "invalid password or identifier",
+      });
 
-      }
-    })
+  user.matchPassword(req.body.password).then((isMatched) => {
+    if (isMatched) {
+      return res.status(200).send({
+        jwt: jwt.sign({ _id: user.id }, ACCESS_TOKEN_SECRET),
+        user: user.toSendable(),
+      });
+    } else {
+      return res
+        .status(400)
+        .send({
+          errorType: "invalid-credentials",
+          message: "invalid password or identifier",
+        });
+    }
+  });
 }
 
 export async function getUsersMe(req: Request, res: Response) {
-  return res.sendStatus(500);
+  res.status(200).send((req.user as UserDocument).toSendable());
 }

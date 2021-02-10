@@ -1,6 +1,6 @@
 import { UserDocument, User } from "../../src/models/User";
 import mongoose from "mongoose";
-import { MongoError, ValidationError } from "mongoose/node_modules/mongodb"
+import { MongoError, ValidationError } from "mongoose/node_modules/mongodb";
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import bcrypt from "bcrypt";
 import _ from "lodash";
@@ -71,56 +71,56 @@ describe("User model", () => {
   });
 
   test("should throw if username is duplciate", async () => {
-    await new User(userInitializer).save()
-    userInitializer.email = "different@email.com"
-    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError)
-  })
+    await new User(userInitializer).save();
+    userInitializer.email = "different@email.com";
+    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError);
+  });
 
   test("should throw if password is duplicate", async () => {
-    await new User(userInitializer).save()
-    userInitializer.username = "differentUsername"
-    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError)
-  })
+    await new User(userInitializer).save();
+    userInitializer.username = "differentUsername";
+    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError);
+  });
 
   describe("findByIdentifier", () => {
     test("should be able to search using email identifier", async () => {
-      const initialUser = await new User(userInitializer).save()
-      let user = User.findByIdentifier(userInitializer.email);
+      const initialUser = await new User(userInitializer).save();
+      const user = User.findByIdentifier(userInitializer.email);
       expect((await user).equals(initialUser)).toBe(true);
-    })
+    });
 
     test("should be able to search using email identifier", async () => {
-      const initialUser = await new User(userInitializer).save()
-      let user = User.findByIdentifier(userInitializer.username);
+      const initialUser = await new User(userInitializer).save();
+      const user = User.findByIdentifier(userInitializer.username);
       expect((await user).equals(initialUser)).toBe(true);
-    })
+    });
 
     test("should return null if identifier doesn't exist", async () => {
-      const initialUser = await new User(userInitializer).save()
-      let user = User.findByIdentifier("doesntexistidentifier");
+      const initialUser = await new User(userInitializer).save();
+      const user = User.findByIdentifier("doesntexistidentifier");
       expect(user).resolves.toBe(null);
-    })
+    });
 
-  })
+  });
   describe("UserDocument.prototype.matchPassword()", () => {
     test("should return true if correct password", async () => {
       const user = await new User(userInitializer).save();
       await expect(user.matchPassword(userInitializer.password)).resolves.toBe(true);
-    })
+    });
 
     test("should return true if incorrect password", async () => {
       const user = await new User(userInitializer).save();
       await expect(user.matchPassword("incorrect-password")).resolves.toBe(false);
-    })
-  })
+    });
+  });
   describe("UserDocument.prototype.toSendable()", () => {
     test("should return object without password", async () => {
       const user = await new User(userInitializer).save();
       const sendableUser = user.toSendable();
       expect(_.isMatch(user, sendableUser)).toBe(true);
       expect((sendableUser as any).password).toBe(undefined);
-    })
-  })
+    });
+  });
 });
 
 function getUserInitializer() {

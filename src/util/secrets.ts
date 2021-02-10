@@ -23,14 +23,14 @@ if (!MONGODB_URI) {
 }
 
 // jwt access token secret
-export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
+export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 if (!ACCESS_TOKEN_SECRET) {
-    logger.error("No access token secret. set ACCESS_TOKEN_SECRET environment variable")
+    logger.error("No access token secret. set ACCESS_TOKEN_SECRET environment variable");
     process.exit(1);
 }
 
-export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET
+export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 if (!REFRESH_TOKEN_SECRET) {
-    logger.error("No refresh token secret. set REFRESH_TOKEN_SECRET environment variable")
+    logger.error("No refresh token secret. set REFRESH_TOKEN_SECRET environment variable");
     process.exit(1);
 }

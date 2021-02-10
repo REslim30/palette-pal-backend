@@ -5,16 +5,24 @@ import {
 import passport from "passport";
 import { User } from "../models/User";
 import logger from "../util/logger";
+import { ACCESS_TOKEN_SECRET } from "../util/secrets";
 
 // JWT strategy
 passport.use(new JWTStrategy({
-  secretOrKey: "secret", //TODO get better secret
+  secretOrKey: ACCESS_TOKEN_SECRET,
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
 }, authenticateUser));
 
 function authenticateUser(jwtPayload: any, done: Function) {
-  logger.debug("authenticating user");
-  done(new Error("unimplemented"));
+  User.findById(jwtPayload._id, (err, user) => {
+    if (err) return done(err, false);
+
+    if (user) {
+      return done(null, user);
+    } else {
+      return done(null, false);
+    }
+  })
 }
 
 export default passport;

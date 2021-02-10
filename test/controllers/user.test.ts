@@ -9,7 +9,7 @@ describe("User routes", () => {
   beforeEach(async () => {
     user = {
       username: "testUser18",
-      password: "testUser18",
+      password: "testUser18password",
       email: "testUser18@gmail.com"
     };
 
@@ -99,13 +99,13 @@ describe("User routes", () => {
           .send(user)
           .expect(200);
 
-        user.email = 'differentEmail@gmail.com'
+        user.email = "differentEmail@gmail.com";
         
         const resSecond = await registerRequest()
           .send(user)
           .expect(400);
         
-        expect(resSecond.body.errors.username.kind).toBe('unique');
+        expect(resSecond.body.errors.username.kind).toBe("unique");
       });
 
       test("should reject on duplicate email", async () => {
@@ -113,13 +113,13 @@ describe("User routes", () => {
           .send(user)
           .expect(200);
 
-        user.username = 'differentUsername'
+        user.username = "differentUsername";
 
         const res = await registerRequest()
           .send(user)
           .expect(400);
 
-        expect(res.body.errors.email.kind).toBe('unique');
+        expect(res.body.errors.email.kind).toBe("unique");
       });
     });
   });
@@ -128,34 +128,35 @@ describe("User routes", () => {
     // register 
     beforeEach(async () => {
       await registerRequest()
-        .send(user)
-    })
+        .send(user);
+    });
 
-    test('should respond with 400 if missing identifier or password', async () => {
+    test("should respond with 400 if missing identifier or password", async () => {
       const res = await loginRequest()
         .send({})
-        .expect(400)
+        .expect(400);
 
-      expect(res.body.message).toBe("Missing identifer or password field")
-    })
+      expect(res.body.message).toBe("Missing identifer or password field");
+    });
 
-    test('should respond with 400 and have errorType to be "invalid-credentials" if identifier doesn"t exist.', async () => {
+    test("should respond with 400 and have errorType to be \"invalid-credentials\" if identifier doesn\"t exist.", async () => {
       const userLogin = {
-        identifier: 'invalidUsername',
+        identifier: "invalidUsername",
         password: user.password
-      }
+      };
       const res = await loginRequest()
         .send(userLogin)
-        .expect(400)
+        .expect(400);
       
-      expect(res.body.errorType).toBe("invalid-credentials")
-    })
+      expect(res.body.errorType).toBe("invalid-credentials");
+      expect(typeof res.body.message).toBe("string");
+    });
 
     test("should respond with 200, a jwt and with user (excluding password) if credentials are valid", async () => {
       const userLogin = {
         identifier: user.username,
         password: user.password
-      }
+      };
 
       const res = await loginRequest()
         .send(userLogin)
@@ -164,16 +165,51 @@ describe("User routes", () => {
       const decoded = jwt.decode(res.body.jwt, { json: true });
       expect(decoded._id).toBe(res.body.user._id);
 
-      expect(_.isMatch(res.body.user, _.omit(user, ['password']))).toBe(true);
+      expect(_.isMatch(res.body.user, _.omit(user, ["password"]))).toBe(true);
       expect(res.body.user.password).toBe(undefined);
+    });
+
+    test("should respond with 400, and invalid-credentials if invalid password", async () => {
+      const userLogin = {
+        identifier: user.username,
+        password: "invalidpassword"
+      };
+
+      const res = await loginRequest()
+        .send(userLogin)
+        .expect(400);
+
+      expect(res.body.errorType).toBe("invalid-credentials");
+      expect(typeof res.body.message).toBe("string");
     });
   });
 
   describe("/users/me", () => {
+    beforeEach(async () => {
+      await request(app)
+        .post("/register")
+        .send(user);
+    });
+
     test("should respond with 401 if unauthorized", async () => {
       await request(app)
         .get("/users/me")
         .expect(401);
+    });
+
+    test("should respond with 200 and user without password if containing jwt in authorization header", async () => {
+      const authRes = await request(app)
+        .post("/login")
+        .send({ identifier: user.email, password: user.password })
+        .expect(200);
+
+      const res = await request(app)
+        .get("/users/me")
+        .set("Authorization", `Bearer ${authRes.body.jwt}`)
+        .expect(200);
+
+      expect(res.body.password).toBe(undefined);
+      expect(_.isMatch(res.body, _.omit(user, ['password'])))
     });
   });
 });
@@ -187,5 +223,5 @@ function registerRequest() {
 function loginRequest() {
   return request(app)
     .post("/login")
-    .set('Content-Type', "application/json")
+    .set("Content-Type", "application/json");
 }
