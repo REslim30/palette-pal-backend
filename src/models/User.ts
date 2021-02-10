@@ -1,13 +1,16 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { NextFunction } from "express";
-import { identifier } from "@babel/types";
+import _ from "lodash";
 
 interface UserModel extends mongoose.Model<UserDocument> {
   findByIdentifier(identifier: string): Promise<UserDocument>
 }
 
-export type UserDocument = User & mongoose.Document;
+export type UserDocument = User & mongoose.Document & {
+  matchPassword(password: string): Promise<boolean>,
+  toSendable(): Omit<User, 'password'>
+};
 
 export type User = {
   username: string;
@@ -49,5 +52,12 @@ userSchema.statics.findByIdentifier = async function (this: mongoose.Model<UserD
   return user
 }
 
+userSchema.methods.matchPassword = async function (this: UserDocument, password: string) {
+  return bcrypt.compare(password, this.password);
+}
+
+userSchema.methods.toSendable = function (this: UserDocument): Omit<User, 'password'> {
+  return _.omit(this.toObject(), ['password']);
+}
 
 export const User = mongoose.model<UserDocument, UserModel>("User", userSchema);

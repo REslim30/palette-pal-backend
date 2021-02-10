@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { MongoError, ValidationError } from "mongoose/node_modules/mongodb"
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import bcrypt from "bcrypt";
+import _ from "lodash";
 
 describe("User model", () => {
   let db: mongoose.Connection;
@@ -98,6 +99,26 @@ describe("User model", () => {
       const initialUser = await new User(userInitializer).save()
       let user = User.findByIdentifier("doesntexistidentifier");
       expect(user).resolves.toBe(null);
+    })
+
+  })
+  describe("UserDocument.prototype.matchPassword()", () => {
+    test("should return true if correct password", async () => {
+      const user = await new User(userInitializer).save();
+      await expect(user.matchPassword(userInitializer.password)).resolves.toBe(true);
+    })
+
+    test("should return true if incorrect password", async () => {
+      const user = await new User(userInitializer).save();
+      await expect(user.matchPassword("incorrect-password")).resolves.toBe(false);
+    })
+  })
+  describe("UserDocument.prototype.toSendable()", () => {
+    test("should return object without password", async () => {
+      const user = await new User(userInitializer).save();
+      const sendableUser = user.toSendable();
+      expect(_.isMatch(user, sendableUser)).toBe(true);
+      expect((sendableUser as any).password).toBe(undefined);
     })
   })
 });

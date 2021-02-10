@@ -46,16 +46,19 @@ export async function postLogin(req: Request, res: Response) {
   if (req.body.password === undefined || req.body.identifier === undefined)
     return res.status(400).send({message: "Missing identifer or password field"})
   
-  // First check emails for user
-  let user = await User.findOne({ email: req.body.identifier });
-
-  // Next check usernames
-  if (user === null)
-    user = await User.findOne({ username: req.body.identifer });
-
+  const user = await User.findByIdentifier(req.body.identifier);
   if (user === null)
     return res.status(400).send({errorType: "invalid-credentials"})
   
+  //now check password
+  user.matchPassword(req.body.identifier)
+    .then((isMatched) => {
+      if (isMatched) {
+        return res.status(200).send(user.toSendable());
+      } else {
+
+      }
+    })
 }
 
 export async function getUsersMe(req: Request, res: Response) {

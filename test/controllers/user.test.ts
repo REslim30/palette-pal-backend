@@ -149,6 +149,20 @@ describe("User routes", () => {
       
       expect(res.body.errorType).toBe("invalid-credentials")
     })
+
+    test("should respond with 200 and with user (excluding password) if credentials are valid", async () => {
+      const userLogin = {
+        identifier: user.username,
+        password: user.password
+      }
+
+      const res = await loginRequest()
+        .send(userLogin)
+        .expect(200);
+
+      expect(_.isMatch(res.body, _.omit(user, ['password']))).toBe(true);
+      expect(res.body.password).toBe(undefined);
+    });
   });
 
   describe("/users/me", () => {
