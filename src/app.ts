@@ -7,7 +7,7 @@ import flash from "express-flash";
 import path from "path";
 import mongoose from "mongoose";
 import bluebird from "bluebird";
-import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
+import { MONGODB_URI } from "./util/secrets";
 import passport from "./config/passport";
 import morgan from "morgan";
 
@@ -37,17 +37,7 @@ app.use(morgan("tiny"));
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({
-    resave: true,
-    saveUninitialized: true,
-    secret: SESSION_SECRET,
-    store: new MongoStore({
-        url: mongoUrl,
-        autoReconnect: true
-    })
-}));
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
     res.locals.user = req.user;

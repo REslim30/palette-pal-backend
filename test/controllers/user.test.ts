@@ -2,6 +2,7 @@ import request from "supertest";
 import app from "../../src/app";
 import _ from "lodash";
 import { User } from "../../src/models/User";
+import jwt from "jsonwebtoken";
 
 describe("User routes", () => {
   let user: User;
@@ -150,7 +151,7 @@ describe("User routes", () => {
       expect(res.body.errorType).toBe("invalid-credentials")
     })
 
-    test("should respond with 200 and with user (excluding password) if credentials are valid", async () => {
+    test("should respond with 200, a jwt and with user (excluding password) if credentials are valid", async () => {
       const userLogin = {
         identifier: user.username,
         password: user.password
@@ -160,8 +161,11 @@ describe("User routes", () => {
         .send(userLogin)
         .expect(200);
 
-      expect(_.isMatch(res.body, _.omit(user, ['password']))).toBe(true);
-      expect(res.body.password).toBe(undefined);
+      const decoded = jwt.decode(res.body.jwt, { json: true });
+      expect(decoded._id).toBe(res.body.user._id);
+
+      expect(_.isMatch(res.body.user, _.omit(user, ['password']))).toBe(true);
+      expect(res.body.user.password).toBe(undefined);
     });
   });
 

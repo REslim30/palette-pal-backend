@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { User } from "../models/User";
 import jwt from "jsonwebtoken";
-import { MongoError, ValidationError } from "mongoose/node_modules/mongodb";
 import _ from "lodash";
 import logger from "../util/logger";
+import { ACCESS_TOKEN_SECRET } from "../util/secrets";
 export async function postRegister(req: Request, res: Response) {
   if (req.get("Content-Type") !== "application/json")
     return res.sendStatus(415);
@@ -50,11 +50,13 @@ export async function postLogin(req: Request, res: Response) {
   if (user === null)
     return res.status(400).send({errorType: "invalid-credentials"})
   
-  //now check password
   user.matchPassword(req.body.identifier)
     .then((isMatched) => {
       if (isMatched) {
-        return res.status(200).send(user.toSendable());
+        return res.status(200).send({ 
+          jwt: jwt.sign( { _id: user.id }, ACCESS_TOKEN_SECRET),
+          user: user.toSendable(),
+        });
       } else {
 
       }
