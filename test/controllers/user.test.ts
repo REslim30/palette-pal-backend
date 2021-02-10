@@ -108,9 +108,15 @@ describe("User routes", () => {
   });
 
   describe("/login", () => {
+    function getUserLogin() {
+      return {
+        identifier: user.email,
+        password: user.password
+      }
+    }
     // register
     beforeEach(async () => {
-      await registerRequest().send(user);
+      await User.create(user);
     });
 
     test("should respond with 400 if missing identifier or password", async () => {
@@ -120,10 +126,8 @@ describe("User routes", () => {
     });
 
     test('should respond with 400 and have errorType to be "invalid-credentials" if identifier doesn"t exist.', async () => {
-      const userLogin = {
-        identifier: "invalidUsername",
-        password: user.password,
-      };
+      const userLogin = getUserLogin();
+      userLogin.identifier = "invalidIdentifier"
       const res = await loginRequest().send(userLogin).expect(400);
 
       expect(res.body.errorType).toBe("invalid-credentials");
@@ -131,10 +135,7 @@ describe("User routes", () => {
     });
 
     test("should respond with 200, a jwt and with user (excluding password) if credentials are valid", async () => {
-      const userLogin = {
-        identifier: user.username,
-        password: user.password,
-      };
+      const userLogin = getUserLogin();
 
       const res = await loginRequest().send(userLogin).expect(200);
 
@@ -146,10 +147,7 @@ describe("User routes", () => {
     });
 
     test("jwt should expire in 15 minutes", async () => {
-      const res = await loginRequest().send({
-        identifier: user.email,
-        password: user.password,
-      })
+      const res = await loginRequest().send(getUserLogin())
       .expect(200)
 
       const decoded = jwt.decode(res.body.jwt, {json: true,complete: true})
@@ -157,15 +155,25 @@ describe("User routes", () => {
     });
 
     test("should respond with 400, and invalid-credentials if invalid password", async () => {
-      const userLogin = {
-        identifier: user.username,
-        password: "invalidpassword",
-      };
+      const userLogin = getUserLogin();
+      userLogin.password = "invalidPassword"
 
       const res = await loginRequest().send(userLogin).expect(400);
 
       expect(res.body.errorType).toBe("invalid-credentials");
       expect(typeof res.body.message).toBe("string");
+    });
+
+    test("should respond with a refresh_token, set as a cookie with HttpOnly, sameSite=None, Secure", async () => {
+      const userLogin = getUserLogin();
+
+      const res = await loginRequest().send(userLogin).expect(200);
+
+      console.log(res.header);
+      expect(res.header['set-cookie']).toMatch(/refresh_token=/);
+      expect(res.header['set-cookie']).toMatch(/Secure/);
+      expect(res.header['set-cookie']).toMatch(/SameSite=None/);
+      expect(res.header['set-cookie']).toMatch(/HttpOnly/);
     });
   });
 
