@@ -1,5 +1,6 @@
 import { UserDocument, User } from "../../src/models/User";
 import mongoose from "mongoose";
+import { MongoError, ValidationError } from "mongoose/node_modules/mongodb"
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import bcrypt from "bcrypt";
 
@@ -57,7 +58,7 @@ describe("User model", () => {
 
   test("should throw if password is empty", async () => {
     validUser.password = "";
-    await expect(validUser.save()).rejects.toThrow();
+    await expect(validUser.save()).rejects.toThrow(ValidationError);
   });
 
   test("should save password as hash", async () => {
@@ -67,6 +68,18 @@ describe("User model", () => {
     const result = await bcrypt.compare(userInitializer.password, user.password);
     expect(result).toBe(true);
   });
+
+  test("should throw if username is duplciate", async () => {
+    await new User(userInitializer).save()
+    userInitializer.email = "different@email.com"
+    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError)
+  })
+
+  test("should throw if password is duplicate", async () => {
+    await new User(userInitializer).save()
+    userInitializer.username = "differentUsername"
+    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError)
+  })
 });
 
 function getUserInitializer() {

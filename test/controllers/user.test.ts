@@ -2,18 +2,19 @@ import request from "supertest";
 import app from "../../src/app";
 import _ from "lodash";
 import { User } from "../../src/models/User";
-import { response } from "express";
 
 describe("User routes", () => {
   describe("/register", () => {
     let user: User;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       user = {
         username: "testUser18",
         password: "testUser18",
         email: "testUser18@gmail.com"
       };
+
+      await User.deleteMany({});
     });
 
     test("Should 415 for non json content types", (done) => {
@@ -25,15 +26,14 @@ describe("User routes", () => {
     });
 
     describe("after sending a user", () => {
-      let userRequest: request.Test;
-      beforeEach(() => {
-        userRequest = request(app)
+      function userRequest() {
+        return request(app)
           .post("/register")
           .set("Content-Type", "application/json");
-      });
+      }
 
       test("Should 200 for valid input", async () => {
-        const res = await userRequest
+        const res = await userRequest()
           .send(user)
           .expect(200);
 
@@ -47,7 +47,7 @@ describe("User routes", () => {
       test("should provide a message for empty username", (done) => {
         user.username = "";
 
-        userRequest
+        userRequest()
           .send(user)
           .expect(400, (err, res) => {
             if (err) done(err);
@@ -59,7 +59,7 @@ describe("User routes", () => {
       test("should provide a message for empty email", (done) => {
         user.email = "";
 
-        userRequest
+        userRequest()
           .send(user)
           .expect(400, (err, res) => {
             if (err) done(err);
@@ -71,7 +71,7 @@ describe("User routes", () => {
       test("should provide a message for non-compliant RFC2822 email", async () => {
         user.email = "w@w";
 
-        const res = await userRequest
+        const res = await userRequest()
           .send(user)
           .expect(400);
 
@@ -80,21 +80,50 @@ describe("User routes", () => {
 
       test("should provide a message for not providing username", async () => {
         delete user.username;
-        const res = await userRequest
+        const res = await userRequest()
           .send(user)
           .expect(400);
         
         expect(res.body.errors.username.kind).toBe("required");
+        expect(res.body.errors.username.name).toBe(undefined);
       });
 
       test("should provide a message for not providing password", async () => {
         delete user.password;
 
-        const res = await userRequest
+        const res = await userRequest()
           .send(user)
           .expect(400);
 
         expect(res.body.errors.password.kind).toBe("required");
+      });
+
+      test("should reject on duplicate username", async () => {
+        const res = await userRequest()
+          .send(user)
+          .expect(200);
+
+        user.email = 'differentEmail@gmail.com'
+        
+        const resSecond = await userRequest()
+          .send(user)
+          .expect(400);
+        
+        expect(resSecond.body.errors.username.kind).toBe('unique');
+      });
+
+      test("should reject on duplicate email", async () => {
+        await userRequest()
+          .send(user)
+          .expect(200);
+
+        user.username = 'differentUsername'
+
+        const res = await userRequest()
+          .send(user)
+          .expect(400);
+
+        expect(res.body.errors.email.kind).toBe('unique');
       });
     });
   });

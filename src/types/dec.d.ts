@@ -1,0 +1,1 @@
+declare module "mongoose/node_modules/mongodb"
