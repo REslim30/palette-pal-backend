@@ -64,7 +64,7 @@ export async function postLogin(req: Request, res: Response) {
   user.matchPassword(req.body.password).then((isMatched) => {
     if (isMatched) {
       return res.status(200).send({
-        jwt: jwt.sign({ _id: user.id }, ACCESS_TOKEN_SECRET),
+        jwt: jwt.sign({ sub: user.id }, ACCESS_TOKEN_SECRET, { expiresIn: '15m' }),
         user: user.toSendable(),
       });
     } else {

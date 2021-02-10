@@ -3,6 +3,7 @@ import app from "../../src/app";
 import _ from "lodash";
 import { User } from "../../src/models/User";
 import jwt from "jsonwebtoken";
+import ms from "ms";
 
 describe("User routes", () => {
   let user: User;
@@ -138,7 +139,7 @@ describe("User routes", () => {
       const res = await loginRequest().send(userLogin).expect(200);
 
       const decoded = jwt.decode(res.body.jwt, { json: true });
-      expect(decoded._id).toBe(res.body.user._id);
+      expect(decoded.sub).toBe(res.body.user._id);
 
       expect(_.isMatch(res.body.user, _.omit(user, ["password"]))).toBe(true);
       expect(res.body.user.password).toBe(undefined);
@@ -152,7 +153,7 @@ describe("User routes", () => {
       .expect(200)
 
       const decoded = jwt.decode(res.body.jwt, {json: true,complete: true})
-      expect(new Date(decoded.payload.exp).getTime()).toBeGreaterThan(new Date().getTime() + ms('15m'));
+      expect(parseInt(decoded.payload.exp) * 1000).toBeGreaterThan(new Date().getTime() + ms('14m'));
     });
 
     test("should respond with 400, and invalid-credentials if invalid password", async () => {
