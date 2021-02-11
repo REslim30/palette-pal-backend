@@ -7,10 +7,6 @@ const client = redis.createClient(REDIS_URL);
 const setexAsync = promisify(client.setex).bind(client);
 const existsAsync = promisify(client.exists).bind(client);
 const delAsync = promisify(client.del).bind(client);
-type RefreshToken = {
-  expires: Date;
-};
-const refreshTokenRegistry = new Map<string, RefreshToken>();
 export function verify(userId: string): Promise<boolean> {
   if (userId === undefined) return Promise.resolve(false);
   return existsAsync(userId).then((value: any) => Boolean(value));
