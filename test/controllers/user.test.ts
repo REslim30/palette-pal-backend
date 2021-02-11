@@ -38,7 +38,6 @@ describe("User routes", () => {
         const res = await registerRequest().send(user).expect(200);
 
         const { _id, ...result } = res.body.user;
-        console.log(result);
         expect(_.isMatch(user, result)).toBe(true);
         const users = await User.find({ _id });
         expect(users.length).toBe(1);
@@ -237,14 +236,39 @@ describe("User routes", () => {
     test("should not have Access-Control-Allow-Credentials header", async () => {
       const authRes = await loginRequest()
         .send(getUserLogin())
-        .expect(200)
+        .expect(200);
 
       const res = await request(app)
         .get("/users/me")
         .set("Authorization", `Bearer ${authRes.body.jwt}`)
-        .expect(200)
+        .expect(200);
       
-      expect(authRes.get("Access-Control-Allow-Credentials")).not.toBe(true);
+      expect(authRes.get("Access-Control-Allow-Credentials")).not.toBe("true");
+    });
+  });
+
+  describe("/refresh_token", () => {
+    beforeEach(async () => {
+      await User.create(user);
+    });
+
+
+    test("should respond with Access-Controll-Allow-Credentials OPTIONS request", async () => {
+      const res = await request(app)
+        .options("/refresh_token")
+        .expect(204)
+
+      expect(res.get("Access-Control-Allow-Credentials")).toBe("true");
+    });
+
+    test("should respond with 200", async () => {
+      const authRes = await loginRequest()
+        .expect(200);
+
+      const res = await request(app)
+        .get("/refresh_token")
+        .set("Cookie", authRes.get('Set-Cookie'))
+        .expect(200)
     });
   });
 });
