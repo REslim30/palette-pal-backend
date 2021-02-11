@@ -5,6 +5,7 @@ import { User } from "../../src/models/User";
 import jwt from "jsonwebtoken";
 import ms from "ms";
 import { REFRESH_TOKEN_SECRET } from "../../src/util/secrets";
+import MockDate from "mockdate";
 
 describe("User routes", () => {
   let user: User;
@@ -253,11 +254,9 @@ describe("User routes", () => {
       await User.create(user);
     });
 
-    function refreshTokenRequest(refreshToken: string) {
-      return request(app)
-        .get("/refresh_token")
-        .set("Cookie", `refresh_token=${refreshToken}`);
-    }
+    afterEach(async () => {
+      MockDate.reset();
+    })
 
     test("should respond with Access-Controll-Allow-Credentials OPTIONS request", async () => {
       const res = await request(app)
@@ -290,11 +289,20 @@ describe("User routes", () => {
         .send(getUserLogin())
         .expect(200);
 
-      const res = await request(app)
-        .get("/refresh_token")
-        .set("Cookie", authRes.get("Set-Cookie"))
+      const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
         .expect(200);
     });
+
+    test("should respond with 401 if 30 days has passed", async () => {
+      const authRes = await loginRequest()
+        .send(getUserLogin())
+        .expect(200)
+      
+      MockDate.set(new Date().getTime() + ms('30d') + 5);
+
+      const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
+        .expect(401);
+    })
   });
 });
 
@@ -304,4 +312,15 @@ function registerRequest() {
 
 function loginRequest() {
   return request(app).post("/login").set("Content-Type", "application/json");
+}
+
+function refreshTokenRequest(refreshToken: string | string[]) {
+  const req = request(app)
+    .get("/refresh_token");
+  if (typeof refreshToken === 'string')
+    req.set("Cookie", `refresh_token=${refreshToken}`);
+  else 
+    req.set("Cookie", refreshToken)
+  
+  return req
 }
