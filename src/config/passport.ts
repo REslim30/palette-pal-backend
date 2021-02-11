@@ -22,7 +22,7 @@ function authenticateUser(jwtPayload: any, done: Function) {
     } else {
       return done(null, false);
     }
-  })
+  });
 }
 
 export default passport;

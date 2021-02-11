@@ -11,6 +11,7 @@ import bluebird from "bluebird";
 import { MONGODB_URI } from "./util/secrets";
 import passport from "./config/passport";
 import morgan from "morgan";
+import cors from "cors";
 
 const MongoStore = mongo(session);
 
@@ -36,7 +37,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
 app.set("port", process.env.PORT || 3000);
 app.use(morgan("tiny"));
 app.use(compression());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());

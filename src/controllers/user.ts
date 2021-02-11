@@ -5,19 +5,28 @@ import _ from "lodash";
 import logger from "../util/logger";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "../util/secrets";
 import { identifier } from "@babel/types";
-export async function postRegister(req: Request, res: Response) {
+import { compose }  from "compose-middleware";
+import { nextTick } from "async";
+
+export const postRegister = compose([postRegisterErrorHandler, loginSucess]);
+export const postLogin = compose([postLoginHandler, loginSucess]);
+export { getUsersMe };
+
+async function postRegisterErrorHandler(req: Request, res: Response, next: NextFunction) {
   if (req.get("Content-Type") !== "application/json")
     return res.sendStatus(415);
-  try {
-    const user = new User({
-      email: req.body.email,
-      username: req.body.username,
-      password: req.body.password,
-    });
-    const userDocument = await user.save();
-    const { __v, password, ...result } = userDocument.toObject();
-    return res.status(200).send(result);
-  } catch (error) {
+  
+  const user = new User({
+    email: req.body.email,
+    username: req.body.username,
+    password: req.body.password,
+  });
+  user.save()
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((error) => {
     switch (error.name) {
       case "ValidationError":
         Object.keys(error.errors).forEach((key) => {
@@ -43,10 +52,10 @@ export async function postRegister(req: Request, res: Response) {
       default:
         return res.status(400).send("invalid user.");
     }
-  }
+  });
 }
 
-export async function postLogin(req: Request, res: Response) {
+async function postLoginHandler(req: Request, res: Response, next: NextFunction) {
   if (
     typeof req.body.password !== "string" ||
     typeof req.body.identifier !== "string"
@@ -64,17 +73,8 @@ export async function postLogin(req: Request, res: Response) {
 
   user.matchPassword(req.body.password).then((isMatched) => {
     if (isMatched) {
-      res.cookie("refresh_token", jwt.sign({}, REFRESH_TOKEN_SECRET), {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-      });
-      return res.status(200).send({
-        jwt: jwt.sign({ sub: user.id }, ACCESS_TOKEN_SECRET, {
-          expiresIn: "15m",
-        }),
-        user: user.toSendable(),
-      });
+      req.user = user;
+      next();
     } else {
       return res.status(400).send({
         errorType: "invalid-credentials",
@@ -84,10 +84,21 @@ export async function postLogin(req: Request, res: Response) {
   });
 }
 
-export function loginSucess(req: Request, res: Response) {
-  
+function loginSucess(req: Request, res: Response) {
+  const user = req.user as UserDocument;
+  res.cookie("refresh_token", jwt.sign({}, REFRESH_TOKEN_SECRET), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+  return res.status(200).send({
+    jwt: jwt.sign({ sub: user.id }, ACCESS_TOKEN_SECRET, {
+      expiresIn: "15m",
+    }),
+    user: user.toSendable(),
+  });
 }
 
-export async function getUsersMe(req: Request, res: Response) {
+async function getUsersMe(req: Request, res: Response) {
   return res.status(200).send((req.user as UserDocument).toSendable());
 }

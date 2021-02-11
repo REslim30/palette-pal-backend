@@ -22,7 +22,7 @@ describe("User routes", () => {
       request(app)
         .post("/register")
         .set("Content-Type", "text/plain")
-        .send('{ identifer: "testUser18", password: "testUser18" }')
+        .send("{ identifer: \"testUser18\", password: \"testUser18\" }")
         .expect(415, done);
     });
 
@@ -31,6 +31,7 @@ describe("User routes", () => {
         const res = await registerRequest().send(user).expect(200);
 
         const { _id, ...result } = res.body.user;
+        console.log(result);
         expect(_.isMatch(user, result)).toBe(true);
         const users = await User.find({ _id });
         expect(users.length).toBe(1);
@@ -42,6 +43,16 @@ describe("User routes", () => {
 
         const decoded = jwt.decode(res.body.jwt, { json: true });
         expect(decoded.sub).toBe(res.body.user._id);
+      });
+
+      test("should respond with a refresh_token, set as a cookie with HttpOnly, sameSite=None, Secure", async () => {
+        const res = await registerRequest().send(user).expect(200);
+
+        const refreshCookie = res.header["set-cookie"].find((cookie: string) => /refresh_token/.test(cookie));
+        expect(refreshCookie).toMatch(/refresh_token=/);
+        expect(refreshCookie).toMatch(/Secure/);
+        expect(refreshCookie).toMatch(/SameSite=None/);
+        expect(refreshCookie).toMatch(/HttpOnly/);
       });
 
       test("should provide a message for empty username", (done) => {
@@ -119,7 +130,7 @@ describe("User routes", () => {
       return {
         identifier: user.email,
         password: user.password
-      }
+      };
     }
     // register
     beforeEach(async () => {
@@ -132,9 +143,9 @@ describe("User routes", () => {
       expect(res.body.message).toBe("Missing identifer or password field");
     });
 
-    test('should respond with 400 and have errorType to be "invalid-credentials" if identifier doesn"t exist.', async () => {
+    test("should respond with 400 and have errorType to be \"invalid-credentials\" if identifier doesn\"t exist.", async () => {
       const userLogin = getUserLogin();
-      userLogin.identifier = "invalidIdentifier"
+      userLogin.identifier = "invalidIdentifier";
       const res = await loginRequest().send(userLogin).expect(400);
 
       expect(res.body.errorType).toBe("invalid-credentials");
@@ -155,15 +166,15 @@ describe("User routes", () => {
 
     test("jwt should expire in 15 minutes", async () => {
       const res = await loginRequest().send(getUserLogin())
-      .expect(200)
+      .expect(200);
 
-      const decoded = jwt.decode(res.body.jwt, {json: true,complete: true})
-      expect(parseInt(decoded.payload.exp) * 1000).toBeGreaterThan(new Date().getTime() + ms('14m'));
+      const decoded = jwt.decode(res.body.jwt, {json: true,complete: true});
+      expect(parseInt(decoded.payload.exp) * 1000).toBeGreaterThan(new Date().getTime() + ms("14m"));
     });
 
     test("should respond with 400, and invalid-credentials if invalid password", async () => {
       const userLogin = getUserLogin();
-      userLogin.password = "invalidPassword"
+      userLogin.password = "invalidPassword";
 
       const res = await loginRequest().send(userLogin).expect(400);
 
@@ -176,7 +187,7 @@ describe("User routes", () => {
 
       const res = await loginRequest().send(userLogin).expect(200);
 
-      const refreshCookie = res.header['set-cookie'].find((cookie: string) => /refresh_token/.test(cookie));
+      const refreshCookie = res.header["set-cookie"].find((cookie: string) => /refresh_token/.test(cookie));
       expect(refreshCookie).toMatch(/refresh_token=/);
       expect(refreshCookie).toMatch(/Secure/);
       expect(refreshCookie).toMatch(/SameSite=None/);
@@ -210,7 +221,7 @@ describe("User routes", () => {
 
     test("should respond with a 401 if expiry is past", async () => {
       const userDocument = await User.findOne({ email: user.email });
-      const jwtString = jwt.sign({ sub: userDocument.id, exp: Math.trunc((new Date).getTime()/1000 - 5) }, process.env.ACCESS_TOKEN_SECRET)
+      const jwtString = jwt.sign({ sub: userDocument.id, exp: Math.trunc((new Date).getTime()/1000 - 5) }, process.env.ACCESS_TOKEN_SECRET);
 
       const authRes = await request(app)
         .get("/users/me")

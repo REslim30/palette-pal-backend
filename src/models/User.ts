@@ -56,8 +56,8 @@ userSchema.methods.matchPassword = async function (this: UserDocument, password:
   return bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.toSendable = function (this: UserDocument): Omit<User, "password"> {
-  return _.omit(this.toObject(), ["password"]);
+userSchema.methods.toSendable = function (this: UserDocument) {
+  return _.omit(this.toObject(), ["password", "__v"]);
 };
 
 export const User = mongoose.model<UserDocument, UserModel>("User", userSchema);
