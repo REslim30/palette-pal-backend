@@ -95,8 +95,8 @@ function registerRefreshToken(req: Request, res: Response, next: NextFunction) {
     secure: true,
     sameSite: "None",
   });
-  refreshTokenRegistry.register(user.id);
-  next();
+  refreshTokenRegistry.register(user.id)
+    .then(() => next())
 }
 
 async function getRefreshTokenHandler(req: Request, res: Response, next: NextFunction) {
@@ -111,11 +111,17 @@ async function getRefreshTokenHandler(req: Request, res: Response, next: NextFun
     return res.sendStatus(401);
   }
 
-  if (!refreshTokenRegistry.verify(payload.sub))
-    return res.sendStatus(401);
-  
-  req.user = await User.findOne({ _id: payload.sub });
-  return next()
+  refreshTokenRegistry.verify(payload.sub)
+    .then((isValid: boolean) => {
+      if (!isValid)
+        return res.sendStatus(401);
+      
+      User.findOne({ _id: payload.sub })
+        .then((user: UserDocument) => {
+          req.user = user;
+          next()
+        });
+    })
 }
 
 function sendJWT(req: Request, res: Response) {

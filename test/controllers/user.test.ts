@@ -5,7 +5,9 @@ import { User } from "../../src/models/User";
 import jwt from "jsonwebtoken";
 import ms from "ms";
 import { REFRESH_TOKEN_SECRET } from "../../src/util/secrets";
-import MockDate from "mockdate";
+import redis from "redis";
+
+const client = redis.createClient();
 
 describe("User routes", () => {
   let user: User;
@@ -27,109 +29,99 @@ describe("User routes", () => {
   }
 
   describe("/register", () => {
-    test("Should 415 for non json content types", (done) => {
-      request(app)
-        .post("/register")
-        .set("Content-Type", "text/plain")
-        .send("{ identifer: \"testUser18\", password: \"testUser18\" }")
-        .expect(415, done);
+    test("Should 200 for valid input", async () => {
+      const res = await registerRequest().send(user).expect(200);
+
+      const { _id, ...result } = res.body.user;
+      expect(_.isMatch(user, result)).toBe(true);
+      const users = await User.find({ _id });
+      expect(users.length).toBe(1);
+      expect(users[0].id).toBe(_id);
     });
 
-    describe("after sending a user", () => {
-      test("Should 200 for valid input", async () => {
-        const res = await registerRequest().send(user).expect(200);
+    test("should send a valid jwt upon sucess", async () => {
+      const res = await registerRequest().send(user).expect(200);
 
-        const { _id, ...result } = res.body.user;
-        expect(_.isMatch(user, result)).toBe(true);
-        const users = await User.find({ _id });
-        expect(users.length).toBe(1);
-        expect(users[0].id).toBe(_id);
-      });
+      const decoded = jwt.decode(res.body.jwt, { json: true });
+      expect(decoded.sub).toBe(res.body.user._id);
+    });
 
-      test("should send a valid jwt upon sucess", async () => {
-        const res = await registerRequest().send(user).expect(200);
+    test("should respond with a refresh_token, set as a cookie with HttpOnly, sameSite=None, Secure", async () => {
+      const res = await registerRequest().send(user).expect(200);
 
-        const decoded = jwt.decode(res.body.jwt, { json: true });
-        expect(decoded.sub).toBe(res.body.user._id);
-      });
+      const refreshCookie = res.header["set-cookie"].find((cookie: string) => /refresh_token/.test(cookie));
+      expect(refreshCookie).toMatch(/refresh_token=/);
+      expect(refreshCookie).toMatch(/Secure/);
+      expect(refreshCookie).toMatch(/SameSite=None/);
+      expect(refreshCookie).toMatch(/HttpOnly/);
+    });
 
-      test("should respond with a refresh_token, set as a cookie with HttpOnly, sameSite=None, Secure", async () => {
-        const res = await registerRequest().send(user).expect(200);
+    test("should provide a message for empty username", (done) => {
+      user.username = "";
 
-        const refreshCookie = res.header["set-cookie"].find((cookie: string) => /refresh_token/.test(cookie));
-        expect(refreshCookie).toMatch(/refresh_token=/);
-        expect(refreshCookie).toMatch(/Secure/);
-        expect(refreshCookie).toMatch(/SameSite=None/);
-        expect(refreshCookie).toMatch(/HttpOnly/);
-      });
+      registerRequest()
+        .send(user)
+        .expect(400, (err, res) => {
+          if (err) done(err);
+          expect(res.body.errors.username.kind).toBe("required");
+          done();
+        });
+    });
 
-      test("should provide a message for empty username", (done) => {
-        user.username = "";
+    test("should provide a message for empty email", (done) => {
+      user.email = "";
 
-        registerRequest()
-          .send(user)
-          .expect(400, (err, res) => {
-            if (err) done(err);
-            expect(res.body.errors.username.kind).toBe("required");
-            done();
-          });
-      });
+      registerRequest()
+        .send(user)
+        .expect(400, (err, res) => {
+          if (err) done(err);
+          expect(res.body.errors.email.kind).toBe("required");
+          done();
+        });
+    });
 
-      test("should provide a message for empty email", (done) => {
-        user.email = "";
+    test("should provide a message for non-compliant RFC2822 email", async () => {
+      user.email = "w@w";
 
-        registerRequest()
-          .send(user)
-          .expect(400, (err, res) => {
-            if (err) done(err);
-            expect(res.body.errors.email.kind).toBe("required");
-            done();
-          });
-      });
+      const res = await registerRequest().send(user).expect(400);
 
-      test("should provide a message for non-compliant RFC2822 email", async () => {
-        user.email = "w@w";
+      expect(res.body.errors.email.kind).toBe("regexp");
+    });
 
-        const res = await registerRequest().send(user).expect(400);
+    test("should provide a message for not providing username", async () => {
+      delete user.username;
+      const res = await registerRequest().send(user).expect(400);
 
-        expect(res.body.errors.email.kind).toBe("regexp");
-      });
+      expect(res.body.errors.username.kind).toBe("required");
+      expect(res.body.errors.username.name).toBe(undefined);
+    });
 
-      test("should provide a message for not providing username", async () => {
-        delete user.username;
-        const res = await registerRequest().send(user).expect(400);
+    test("should provide a message for not providing password", async () => {
+      delete user.password;
 
-        expect(res.body.errors.username.kind).toBe("required");
-        expect(res.body.errors.username.name).toBe(undefined);
-      });
+      const res = await registerRequest().send(user).expect(400);
 
-      test("should provide a message for not providing password", async () => {
-        delete user.password;
+      expect(res.body.errors.password.kind).toBe("required");
+    });
 
-        const res = await registerRequest().send(user).expect(400);
+    test("should reject on duplicate username", async () => {
+      const res = await registerRequest().send(user).expect(200);
 
-        expect(res.body.errors.password.kind).toBe("required");
-      });
+      user.email = "differentEmail@gmail.com";
 
-      test("should reject on duplicate username", async () => {
-        const res = await registerRequest().send(user).expect(200);
+      const resSecond = await registerRequest().send(user).expect(400);
 
-        user.email = "differentEmail@gmail.com";
+      expect(resSecond.body.errors.username.kind).toBe("unique");
+    });
 
-        const resSecond = await registerRequest().send(user).expect(400);
+    test("should reject on duplicate email", async () => {
+      await registerRequest().send(user).expect(200);
 
-        expect(resSecond.body.errors.username.kind).toBe("unique");
-      });
+      user.username = "differentUsername";
 
-      test("should reject on duplicate email", async () => {
-        await registerRequest().send(user).expect(200);
+      const res = await registerRequest().send(user).expect(400);
 
-        user.username = "differentUsername";
-
-        const res = await registerRequest().send(user).expect(400);
-
-        expect(res.body.errors.email.kind).toBe("unique");
-      });
+      expect(res.body.errors.email.kind).toBe("unique");
     });
   });
 
@@ -254,10 +246,6 @@ describe("User routes", () => {
       await User.create(user);
     });
 
-    afterEach(async () => {
-      MockDate.reset();
-    })
-
     test("should respond with Access-Controll-Allow-Credentials OPTIONS request", async () => {
       const res = await request(app)
         .options("/refresh_token")
@@ -293,15 +281,20 @@ describe("User routes", () => {
         .expect(200);
     });
 
-    test("should respond with 401 if 30 days has passed", async () => {
+    test("should respond with 401 if 30 days has passed", async (done) => {
       const authRes = await loginRequest()
         .send(getUserLogin())
         .expect(200)
       
-      MockDate.set(new Date().getTime() + ms('30d') + 5);
+      const userDoc = authRes.body.user;
+      client.expire(userDoc._id, 0, (err, reply) => {
+        if (err) done(err);
 
-      const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
-        .expect(401);
+        refreshTokenRequest(authRes.get("Set-Cookie"))
+          .expect(401)
+          .then(() => done());
+      });
+
     })
 
     test("should respond with a valid jwt if refresh_token is valid", async () => {
