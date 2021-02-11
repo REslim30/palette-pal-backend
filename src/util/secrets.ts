@@ -36,7 +36,7 @@ if (!REFRESH_TOKEN_SECRET) {
 }
 
 export const REDIS_URL = prod ? process.env.REDIS_URL : undefined;
-if (!REDIS_URL) {
+if (prod && !REDIS_URL) {
     logger.error("No redis url available. set REDIS_URL environment variable");
     process.exit(1);
 }

@@ -1,35 +1,30 @@
 import ms from "ms";
 import redis from "redis";
+import { promisify } from "util";
+import { REDIS_URL } from "../util/secrets";
 
-const client = redis.createClient();
+const client = redis.createClient(REDIS_URL);
+const setexAsync = promisify(client.setex).bind(client);
+const getAsync = promisify(client.get).bind(client);
+const delAsync = promisify(client.del).bind(client);
 type RefreshToken = {
   expires: Date;
 };
 const refreshTokenRegistry = new Map<string, RefreshToken>();
-export function verify(userId: string): boolean {
-  if (!refreshTokenRegistry.has(userId))
-    return false;
-  
-  if (refreshTokenRegistry.get(userId).expires < new Date())
-    return false;
-
-  return true;
+export function verify(userId: string): Promise<boolean> {
+  return getAsync(userId).then((value: any) => Boolean(value));
 }
 
-export function register(userId: string): void {
-  refreshTokenRegistry.set(userId, { expires: getExpiry() });
+export function register(userId: string): Promise<void> {
+  return setexAsync(userId, ms('30d')/1000, 1)
 }
 
-export function clear(): void {
-  refreshTokenRegistry.clear();
-}
-
-function getExpiry(): Date {
-  return new Date(new Date().getTime() + ms("30d"));
+export function remove(userId: string): Promise<void> {
+  return delAsync(userId);
 }
 
 export default {
   verify,
   register,
-  clear
+  remove
 };
