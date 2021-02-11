@@ -4,6 +4,7 @@ import _ from "lodash";
 import { User } from "../../src/models/User";
 import jwt from "jsonwebtoken";
 import ms from "ms";
+import { REFRESH_TOKEN_SECRET } from "../../src/util/secrets";
 
 describe("User routes", () => {
   let user: User;
@@ -252,23 +253,47 @@ describe("User routes", () => {
       await User.create(user);
     });
 
+    function refreshTokenRequest(refreshToken: string) {
+      return request(app)
+        .get("/refresh_token")
+        .set("Cookie", `refresh_token=${refreshToken}`);
+    }
 
     test("should respond with Access-Controll-Allow-Credentials OPTIONS request", async () => {
       const res = await request(app)
         .options("/refresh_token")
-        .expect(204)
+        .expect(204);
 
       expect(res.get("Access-Control-Allow-Credentials")).toBe("true");
     });
 
-    test("should respond with 200", async () => {
+    test("should respond with 401 if no refresh_token cookie is set", async () => {
+      await request(app)
+        .get("/refresh_token")
+        .expect(401);
+    });
+
+    test("should respond with 401 if refresh_token is sent without correct secret", async () => {
+      const invalidRefreshToken = jwt.sign({}, "random-secret");
+
+      const res = await refreshTokenRequest(invalidRefreshToken).expect(401);
+    });
+
+    test("should respond with 401 if refresh_token hasn't been registered", async () => {
+      const invalidRefreshToken = jwt.sign({}, REFRESH_TOKEN_SECRET);
+
+      const res = await refreshTokenRequest(invalidRefreshToken).expect(401);
+    });
+
+    test("should respond with 200 if refresh_token was registered", async () => {
       const authRes = await loginRequest()
+        .send(getUserLogin())
         .expect(200);
 
       const res = await request(app)
         .get("/refresh_token")
-        .set("Cookie", authRes.get('Set-Cookie'))
-        .expect(200)
+        .set("Cookie", authRes.get("Set-Cookie"))
+        .expect(200);
     });
   });
 });

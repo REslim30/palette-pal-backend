@@ -55,4 +55,5 @@ app.use(cors({ origin: allowedOrigins }));
 app.post("/register", userController.postRegister);
 app.get("/users/me", passport.authenticate("jwt", { session: false }), userController.getUsersMe);
 app.post("/login", userController.postLogin);
+app.get("/refresh_token", userController.getRefreshToken);
 export default app;

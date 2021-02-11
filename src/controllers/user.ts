@@ -5,10 +5,11 @@ import _ from "lodash";
 import logger from "../util/logger";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "../util/secrets";
 import { compose }  from "compose-middleware";
+import refreshTokenRegistry from "../util/refreshTokenRegistry";
 
 export const postRegister = compose([checkJSON, postRegisterErrorHandler, loginSucess]);
 export const postLogin = compose([checkJSON, postLoginHandler, loginSucess]);
-export { getUsersMe };
+export { getUsersMe, getRefreshToken };
 
 function checkJSON(req: Request, res: Response, next: NextFunction) {
   if (req.get("Content-Type") !== "application/json")
@@ -87,17 +88,36 @@ async function postLoginHandler(req: Request, res: Response, next: NextFunction)
 
 function loginSucess(req: Request, res: Response) {
   const user = req.user as UserDocument;
-  res.cookie("refresh_token", jwt.sign({}, REFRESH_TOKEN_SECRET), {
+  res.cookie("refresh_token", jwt.sign({ sub: user.id }, REFRESH_TOKEN_SECRET), {
     httpOnly: true,
     secure: true,
     sameSite: "None",
   });
+  refreshTokenRegistry.register(user.id);
   return res.status(200).send({
     jwt: jwt.sign({ sub: user.id }, ACCESS_TOKEN_SECRET, {
       expiresIn: "15m",
     }),
     user: user.toSendable(),
   });
+}
+
+function getRefreshToken(req: Request, res: Response) {
+  const refreshToken = req.cookies["refresh_token"];
+  if (refreshToken === undefined)
+    return res.sendStatus(401);
+  
+  let payload: any;
+  try {
+    payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+  } catch (error) {
+    return res.sendStatus(401);
+  }
+
+  if (!refreshTokenRegistry.verify(payload.sub))
+    return res.sendStatus(401);
+  
+  res.sendStatus(200);
 }
 
 async function getUsersMe(req: Request, res: Response) {
