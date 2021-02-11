@@ -6,10 +6,12 @@ import logger from "../util/logger";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "../util/secrets";
 import { compose }  from "compose-middleware";
 import refreshTokenRegistry from "../util/refreshTokenRegistry";
+import { nextTick } from "async";
 
-export const postRegister = compose([checkJSON, postRegisterErrorHandler, loginSucess]);
-export const postLogin = compose([checkJSON, postLoginHandler, loginSucess]);
-export { getUsersMe, getRefreshToken };
+export const postRegister = compose([checkJSON, postRegisterErrorHandler, registerRefreshToken, sendJWT]);
+export const postLogin = compose([checkJSON, postLoginHandler, registerRefreshToken, sendJWT]);
+export const getRefreshToken = compose([getRefreshTokenHandler, sendJWT])
+export { getUsersMe };
 
 function checkJSON(req: Request, res: Response, next: NextFunction) {
   if (req.get("Content-Type") !== "application/json")
@@ -29,31 +31,31 @@ async function postRegisterErrorHandler(req: Request, res: Response, next: NextF
       next();
     })
     .catch((error) => {
-    switch (error.name) {
-      case "ValidationError":
-        Object.keys(error.errors).forEach((key) => {
-          error.errors[key] = _.pick(error.errors[key], ["kind", "message"]);
-        });
-        return res.status(400).send({
-          errors: error.errors,
-        });
+      switch (error.name) {
+        case "ValidationError":
+          Object.keys(error.errors).forEach((key) => {
+            error.errors[key] = _.pick(error.errors[key], ["kind", "message"]);
+          });
+          return res.status(400).send({
+            errors: error.errors,
+          });
 
-      case "MongoError":
-        const errors: any = {};
-        if (error.keyValue.username !== undefined)
-          errors.username = {
-            kind: "unique",
-            message: "Username already exists.",
-          };
+        case "MongoError":
+          const errors: any = {};
+          if (error.keyValue.username !== undefined)
+            errors.username = {
+              kind: "unique",
+              message: "Username already exists.",
+            };
 
-        if (error.keyValue.email !== undefined)
-          errors.email = { kind: "unique", message: "email already exists." };
+          if (error.keyValue.email !== undefined)
+            errors.email = { kind: "unique", message: "email already exists." };
 
-        return res.status(400).send({ errors });
+          return res.status(400).send({ errors });
 
-      default:
-        return res.status(400).send("invalid user.");
-    }
+        default:
+          return res.status(400).send("invalid user.");
+      }
   });
 }
 
@@ -86,7 +88,7 @@ async function postLoginHandler(req: Request, res: Response, next: NextFunction)
   });
 }
 
-function loginSucess(req: Request, res: Response) {
+function registerRefreshToken(req: Request, res: Response, next: NextFunction) {
   const user = req.user as UserDocument;
   res.cookie("refresh_token", jwt.sign({ sub: user.id }, REFRESH_TOKEN_SECRET), {
     httpOnly: true,
@@ -94,15 +96,10 @@ function loginSucess(req: Request, res: Response) {
     sameSite: "None",
   });
   refreshTokenRegistry.register(user.id);
-  return res.status(200).send({
-    jwt: jwt.sign({ sub: user.id }, ACCESS_TOKEN_SECRET, {
-      expiresIn: "15m",
-    }),
-    user: user.toSendable(),
-  });
+  next();
 }
 
-function getRefreshToken(req: Request, res: Response) {
+async function getRefreshTokenHandler(req: Request, res: Response, next: NextFunction) {
   const refreshToken = req.cookies["refresh_token"];
   if (refreshToken === undefined)
     return res.sendStatus(401);
@@ -117,7 +114,18 @@ function getRefreshToken(req: Request, res: Response) {
   if (!refreshTokenRegistry.verify(payload.sub))
     return res.sendStatus(401);
   
-  res.sendStatus(200);
+  req.user = await User.findOne({ _id: payload.sub });
+  return next()
+}
+
+function sendJWT(req: Request, res: Response) {
+  const user = req.user as UserDocument;
+  return res.status(200).send({
+    jwt: jwt.sign({ sub: user.id }, ACCESS_TOKEN_SECRET, {
+      expiresIn: "15m",
+    }),
+    user: user.toSendable(),
+  });
 }
 
 async function getUsersMe(req: Request, res: Response) {

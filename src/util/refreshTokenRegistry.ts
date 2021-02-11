@@ -1,4 +1,7 @@
 import ms from "ms";
+import redis from "redis";
+
+const client = redis.createClient();
 type RefreshToken = {
   expires: Date;
 };

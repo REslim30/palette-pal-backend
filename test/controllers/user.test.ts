@@ -303,6 +303,19 @@ describe("User routes", () => {
       const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
         .expect(401);
     })
+
+    test("should respond with a valid jwt if refresh_token is valid", async () => {
+      const authRes = await loginRequest()
+        .send(getUserLogin())
+        .expect(200);
+
+      const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
+        .expect(200);
+      
+      const userDoc = await User.findOne({ email: user.email });
+      const decoded = jwt.decode(res.body.jwt, { json: true });
+      expect(decoded.sub).toBe(userDoc.id);
+    });
   });
 });
 

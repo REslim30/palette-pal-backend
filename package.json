@@ -31,6 +31,7 @@
         "@types/morgan": "^1.9.2",
         "@types/ms": "^0.7.31",
         "@types/passport-jwt": "^3.0.4",
+        "@types/redis": "^2.8.28",
         "async": "^3.1.0",
         "bcrypt": "^5.0.0",
         "bcrypt-nodejs": "^0.0.3",
@@ -57,6 +58,7 @@
         "passport-facebook": "^3.0.0",
         "passport-jwt": "^4.0.0",
         "passport-local": "^1.0.0",
+        "redis": "^3.0.2",
         "winston": "^3.2.1"
     },
     "devDependencies": {
