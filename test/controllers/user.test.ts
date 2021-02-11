@@ -169,11 +169,11 @@ describe("User routes", () => {
 
       const res = await loginRequest().send(userLogin).expect(200);
 
-      console.log(res.header);
-      expect(res.header['set-cookie']).toMatch(/refresh_token=/);
-      expect(res.header['set-cookie']).toMatch(/Secure/);
-      expect(res.header['set-cookie']).toMatch(/SameSite=None/);
-      expect(res.header['set-cookie']).toMatch(/HttpOnly/);
+      const refreshCookie = res.header['set-cookie'].find((cookie: string) => /refresh_token/.test(cookie));
+      expect(refreshCookie).toMatch(/refresh_token=/);
+      expect(refreshCookie).toMatch(/Secure/);
+      expect(refreshCookie).toMatch(/SameSite=None/);
+      expect(refreshCookie).toMatch(/HttpOnly/);
     });
   });
 

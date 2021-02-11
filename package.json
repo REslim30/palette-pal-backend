@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "@types/bcrypt": "^3.0.0",
+        "@types/cookie-parser": "^1.4.2",
         "@types/morgan": "^1.9.2",
         "@types/ms": "^0.7.31",
         "@types/passport-jwt": "^3.0.4",

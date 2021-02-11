@@ -1,5 +1,6 @@
 import express from "express";
 import compression from "compression";  // compresses requests
+import cookieParser from "cookie-parser";
 import session from "express-session";
 import bodyParser from "body-parser";
 import mongo from "connect-mongo";
@@ -35,6 +36,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
 app.set("port", process.env.PORT || 3000);
 app.use(morgan("tiny"));
 app.use(compression());
+app.use(cookieParser())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
