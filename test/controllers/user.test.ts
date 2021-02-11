@@ -137,10 +137,14 @@ describe("User routes", () => {
       await User.create(user);
     });
 
-    test("should respond with 400 if missing identifier or password", async () => {
-      const res = await loginRequest().send({}).expect(400);
+    test("should respond with a 415 if not correct content type", async () => {
+      await request(app).post("/login").set("content-type", "text/plain").send("hello world").expect(415);
+    });
 
-      expect(res.body.message).toBe("Missing identifer or password field");
+    test("should respond with 400 if missing identifier or password", async () => {
+      const res = await loginRequest().expect(400);
+
+      expect(res.body.message).toBe("Missing identifier or password field");
     });
 
     test("should respond with 400 and have errorType to be \"invalid-credentials\" if identifier doesn\"t exist.", async () => {

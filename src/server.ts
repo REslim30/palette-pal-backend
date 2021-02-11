@@ -1,5 +1,6 @@
 import errorHandler from "errorhandler";
 import app from "./app";
+import startHTTPServer from "./util/startHTTPServer";
 
 
 /**
@@ -22,5 +23,7 @@ const server = app.listen(app.get("port"), () => {
     );
     console.log("  Press CTRL-C to stop\n");
 });
+
+startHTTPServer(app);
 
 export default server;

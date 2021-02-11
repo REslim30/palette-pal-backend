@@ -4,18 +4,19 @@ import jwt from "jsonwebtoken";
 import _ from "lodash";
 import logger from "../util/logger";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "../util/secrets";
-import { identifier } from "@babel/types";
 import { compose }  from "compose-middleware";
-import { nextTick } from "async";
 
-export const postRegister = compose([postRegisterErrorHandler, loginSucess]);
-export const postLogin = compose([postLoginHandler, loginSucess]);
+export const postRegister = compose([checkJSON, postRegisterErrorHandler, loginSucess]);
+export const postLogin = compose([checkJSON, postLoginHandler, loginSucess]);
 export { getUsersMe };
 
-async function postRegisterErrorHandler(req: Request, res: Response, next: NextFunction) {
+function checkJSON(req: Request, res: Response, next: NextFunction) {
   if (req.get("Content-Type") !== "application/json")
     return res.sendStatus(415);
-  
+  next();
+}
+
+async function postRegisterErrorHandler(req: Request, res: Response, next: NextFunction) {
   const user = new User({
     email: req.body.email,
     username: req.body.username,
@@ -62,7 +63,7 @@ async function postLoginHandler(req: Request, res: Response, next: NextFunction)
   )
     return res
       .status(400)
-      .send({ message: "Missing identifer or password field" });
+      .send({ message: "Missing identifier or password field" });
 
   const user = await User.findByIdentifier(req.body.identifier);
   if (user === null)
