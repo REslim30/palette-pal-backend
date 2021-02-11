@@ -30,11 +30,18 @@ describe("User routes", () => {
       test("Should 200 for valid input", async () => {
         const res = await registerRequest().send(user).expect(200);
 
-        const { _id, ...result } = res.body;
+        const { _id, ...result } = res.body.user;
         expect(_.isMatch(user, result)).toBe(true);
         const users = await User.find({ _id });
         expect(users.length).toBe(1);
         expect(users[0].id).toBe(_id);
+      });
+
+      test("should send a valid jwt upon sucess", async () => {
+        const res = await registerRequest().send(user).expect(200);
+
+        const decoded = jwt.decode(res.body.jwt, { json: true });
+        expect(decoded.sub).toBe(res.body.user._id);
       });
 
       test("should provide a message for empty username", (done) => {

@@ -84,6 +84,10 @@ export async function postLogin(req: Request, res: Response) {
   });
 }
 
+export function loginSucess(req: Request, res: Response) {
+  
+}
+
 export async function getUsersMe(req: Request, res: Response) {
-  res.status(200).send((req.user as UserDocument).toSendable());
+  return res.status(200).send((req.user as UserDocument).toSendable());
 }
