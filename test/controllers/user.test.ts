@@ -17,6 +17,13 @@ describe("User routes", () => {
     await User.deleteMany({});
   });
 
+  function getUserLogin() {
+    return {
+      identifier: user.email,
+      password: user.password
+    };
+  }
+
   describe("/register", () => {
     test("Should 415 for non json content types", (done) => {
       request(app)
@@ -126,12 +133,6 @@ describe("User routes", () => {
   });
 
   describe("/login", () => {
-    function getUserLogin() {
-      return {
-        identifier: user.email,
-        password: user.password
-      };
-    }
     // register
     beforeEach(async () => {
       await User.create(user);
@@ -231,6 +232,19 @@ describe("User routes", () => {
         .get("/users/me")
         .set("Authorization", `Bearer ${jwtString}`)
         .expect(401);
+    });
+
+    test("should not have Access-Control-Allow-Credentials header", async () => {
+      const authRes = await loginRequest()
+        .send(getUserLogin())
+        .expect(200)
+
+      const res = await request(app)
+        .get("/users/me")
+        .set("Authorization", `Bearer ${authRes.body.jwt}`)
+        .expect(200)
+      
+      expect(authRes.get("Access-Control-Allow-Credentials")).not.toBe(true);
     });
   });
 });

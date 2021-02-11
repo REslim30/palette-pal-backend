@@ -36,7 +36,8 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
 // Express configuration
 app.set("port", process.env.PORT || 3000);
 app.use(morgan("tiny"));
-app.use(cors({ origin: ["https://playcode.io"], credentials: true })); // TODO tighten cors policies to select few sites
+// app.use(cors({ origin: ["https://playcode.io"], credentials: true })); // TODO tighten cors policies to select few sites
+app.use(/\/(?!)*/, cors());
 app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
