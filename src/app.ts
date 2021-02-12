@@ -17,7 +17,7 @@ const MongoStore = mongo(session);
 
 // Controllers (route handlers)
 import * as userController from "./controllers/user";
-
+import * as paletteController from "./controllers/palette";
 
 // Create Express server
 const app = express();
@@ -56,4 +56,8 @@ app.post("/register", userController.postRegister);
 app.get("/users/me", passport.authenticate("jwt", { session: false }), userController.getUsersMe);
 app.post("/login", userController.postLogin);
 app.get("/refresh_token", userController.getRefreshToken);
+
+// Palette routes
+app.use("/palettes", passport.authenticate("jwt", { session: false }));
+app.post("/palettes", paletteController.postPalettes);
 export default app;

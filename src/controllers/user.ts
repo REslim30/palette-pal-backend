@@ -6,18 +6,13 @@ import logger from "../util/logger";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "../util/secrets";
 import { compose }  from "compose-middleware";
 import refreshTokenRegistry from "../util/refreshTokenRegistry";
-import { nextTick } from "async";
+import checkJSON from "../middleware/checkJSON";
 
 export const postRegister = compose([checkJSON, postRegisterErrorHandler, registerRefreshToken, sendJWT]);
 export const postLogin = compose([checkJSON, postLoginHandler, registerRefreshToken, sendJWT]);
 export const getRefreshToken = compose([getRefreshTokenHandler, sendJWT])
 export { getUsersMe };
 
-function checkJSON(req: Request, res: Response, next: NextFunction) {
-  if (req.get("Content-Type") !== "application/json")
-    return res.sendStatus(415);
-  next();
-}
 
 async function postRegisterErrorHandler(req: Request, res: Response, next: NextFunction) {
   const user = new User({

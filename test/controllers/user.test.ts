@@ -6,27 +6,17 @@ import jwt from "jsonwebtoken";
 import ms from "ms";
 import { REFRESH_TOKEN_SECRET } from "../../src/util/secrets";
 import redis from "redis";
+import { UserInitializer } from "../util/UserInitializer";
 
 const client = redis.createClient();
 
 describe("User routes", () => {
-  let user: User;
+  let user: UserInitializer;
   beforeEach(async () => {
-    user = {
-      username: "testUser18",
-      password: "testUser18password",
-      email: "testUser18@gmail.com",
-    };
+    user = new UserInitializer();
 
     await User.deleteMany({});
   });
-
-  function getUserLogin() {
-    return {
-      identifier: user.email,
-      password: user.password
-    };
-  }
 
   describe("/register", () => {
     test("Should 200 for valid input", async () => {
@@ -142,7 +132,7 @@ describe("User routes", () => {
     });
 
     test("should respond with 400 and have errorType to be \"invalid-credentials\" if identifier doesn\"t exist.", async () => {
-      const userLogin = getUserLogin();
+      const userLogin = user.getLogin();
       userLogin.identifier = "invalidIdentifier";
       const res = await loginRequest().send(userLogin).expect(400);
 
@@ -151,7 +141,7 @@ describe("User routes", () => {
     });
 
     test("should respond with 200, a jwt and with user (excluding password) if credentials are valid", async () => {
-      const userLogin = getUserLogin();
+      const userLogin = user.getLogin();
 
       const res = await loginRequest().send(userLogin).expect(200);
 
@@ -163,7 +153,7 @@ describe("User routes", () => {
     });
 
     test("jwt should expire in 15 minutes", async () => {
-      const res = await loginRequest().send(getUserLogin())
+      const res = await loginRequest().send(user.getLogin())
       .expect(200);
 
       const decoded = jwt.decode(res.body.jwt, {json: true,complete: true});
@@ -171,7 +161,7 @@ describe("User routes", () => {
     });
 
     test("should respond with 400, and invalid-credentials if invalid password", async () => {
-      const userLogin = getUserLogin();
+      const userLogin = user.getLogin();
       userLogin.password = "invalidPassword";
 
       const res = await loginRequest().send(userLogin).expect(400);
@@ -181,7 +171,7 @@ describe("User routes", () => {
     });
 
     test("should respond with a refresh_token, set as a cookie with HttpOnly, sameSite=None, Secure", async () => {
-      const userLogin = getUserLogin();
+      const userLogin = user.getLogin();
 
       const res = await loginRequest().send(userLogin).expect(200);
 
@@ -229,7 +219,7 @@ describe("User routes", () => {
 
     test("should not have Access-Control-Allow-Credentials header", async () => {
       const authRes = await loginRequest()
-        .send(getUserLogin())
+        .send(user.getLogin())
         .expect(200);
 
       const res = await request(app)
@@ -274,7 +264,7 @@ describe("User routes", () => {
 
     test("should respond with 200 if refresh_token was registered", async () => {
       const authRes = await loginRequest()
-        .send(getUserLogin())
+        .send(user.getLogin())
         .expect(200);
 
       const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
@@ -283,7 +273,7 @@ describe("User routes", () => {
 
     test("should respond with 401 if 30 days has passed", async (done) => {
       const authRes = await loginRequest()
-        .send(getUserLogin())
+        .send(user.getLogin())
         .expect(200)
       
       const userDoc = authRes.body.user;
@@ -299,7 +289,7 @@ describe("User routes", () => {
 
     test("should respond with a valid jwt if refresh_token is valid", async () => {
       const authRes = await loginRequest()
-        .send(getUserLogin())
+        .send(user.getLogin())
         .expect(200);
 
       const res = await refreshTokenRequest(authRes.get("Set-Cookie"))
