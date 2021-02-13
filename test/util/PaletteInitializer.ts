@@ -3,6 +3,7 @@ import { Color } from "../../src/models/Palette";
 export class PaletteInitializer {
   name: string;
   colors: Color[];
+  user: string;
 
   constructor() {
     this.name = 'Example Palette';

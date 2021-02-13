@@ -3,21 +3,6 @@ import bcrypt from "bcrypt";
 import { NextFunction } from "express";
 import _ from "lodash";
 
-interface UserModel extends mongoose.Model<UserDocument> {
-  findByIdentifier(identifier: string): Promise<UserDocument>;
-}
-
-export type UserDocument = User & mongoose.Document & {
-  matchPassword(password: string): Promise<boolean>;
-  toSendable(): Omit<User, "password">;
-};
-
-export type User = {
-  username: string;
-  email: string;
-  password: string;
-};
-
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: {

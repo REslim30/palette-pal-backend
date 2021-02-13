@@ -2,12 +2,18 @@ import { Palette, Color, PaletteDocument } from "../../src/models/Palette";
 import mongoose from "mongoose";
 import _ from "lodash";
 import { connectToMongoDB } from "../util/connectToMongoDB";
-
+import { PaletteInitializer } from "../util/PaletteInitializer";
+import { UserInitializer } from "../util/UserInitializer";
+import { User, UserDocument } from "../../src/models/User";
 
 describe("Palette document", () => {
   let db: mongoose.Connection;
+  let user: UserDocument;
   beforeAll(async () => {
     db = await connectToMongoDB();
+    // Create user
+    await User.deleteMany({});
+    user = await new User(new UserInitializer()).save();
   });
 
   afterAll(async () => {
@@ -21,10 +27,11 @@ describe("Palette document", () => {
 
   // Reset initializers
   let validPalette: PaletteDocument;
-  let paletteInitalizer: Palette;
-  beforeEach(() => {
-    paletteInitalizer = getPaletteInitializer();
-    validPalette = validPaletteDocument();
+  let paletteInitalizer: PaletteInitializer;
+  beforeEach(async () => {
+    paletteInitalizer = new PaletteInitializer();
+    paletteInitalizer.user = user.id;
+    validPalette = new Palette(paletteInitalizer);
   });
 
   test("can be constructed", () => {});
@@ -85,6 +92,16 @@ describe("Palette document", () => {
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
   });
 
+  test("should throw an error if user is empty", async () => {
+    paletteInitalizer.user = undefined;
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+  });
+
+  test("should throw if color is empty", async () => {
+    paletteInitalizer.colors = [];
+    await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+  })
+
   describe("After saving to database", () => {
     let palette: PaletteDocument;
     let palettes: PaletteDocument[];
@@ -115,19 +132,3 @@ describe("Palette document", () => {
     });
   });
 });
-
-function getPaletteInitializer() {
-  return {
-    name: "test palette",
-    colors: [
-      {
-        name: "name of color",
-        shades: ["#FF00FF", "#123456"],
-      },
-    ],
-  };
-}
-
-function validPaletteDocument() {
-  return new Palette(getPaletteInitializer());
-}

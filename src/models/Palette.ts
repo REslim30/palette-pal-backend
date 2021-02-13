@@ -1,29 +1,21 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export type Palette = {
-  name: string;
-  colors: Color[];
-};
-
-export type Color = {
-  name: string;
-  shades: string[];
-};
-export type PaletteDocument = mongoose.Document & {
-  name: string;
-  colors: (Color & mongoose.Document)[];
-};
 
 const paletteSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  colors: [
-    {
+  colors: {
+    type: [{
       name: { type: String, required: true },
       shades: [
         { type: String, match: /^#[a-fA-F0-9]{6}$/, required: true },
       ],
-    },
-  ],
+    }],
+    validate: {
+      validator: (arr: any[]) => arr.length >= 1,
+      message: (props: any) => `${props.path} must be greater than 1.`,
+    }
+  },
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
 export const Palette = mongoose.model<PaletteDocument>(

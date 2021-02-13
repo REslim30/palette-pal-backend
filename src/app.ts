@@ -57,7 +57,11 @@ app.get("/users/me", passport.authenticate("jwt", { session: false }), userContr
 app.post("/login", userController.postLogin);
 app.get("/refresh_token", userController.getRefreshToken);
 
-// Palette routes
-app.use("/palettes", passport.authenticate("jwt", { session: false }));
-app.post("/palettes", paletteController.postPalettes);
+const paletteRoutes = express.Router();
+paletteRoutes.use(passport.authenticate("jwt", { session: false }));
+paletteRoutes.post("/", paletteController.postPalettes);
+paletteRoutes.get("/", paletteController.getPalettes);
+paletteRoutes.get("/:id", paletteController.getPalette);
+app.use('/palettes', paletteRoutes);
+
 export default app;
