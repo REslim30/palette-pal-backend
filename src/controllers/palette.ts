@@ -12,7 +12,7 @@ function postPalettesHandler(req: Request, res: Response, next: NextFunction) {
   Palette.create({
     name: req.body.name,
     colors: req.body.colors,
-    user: (req.user as any).id,
+    user: req.user.id,
   })
   .then((palette) => {
     return res.status(200).json(palette.toJSON());
@@ -25,7 +25,7 @@ function postPalettesHandler(req: Request, res: Response, next: NextFunction) {
 function getPaletteHandler(req: Request, res: Response, next: NextFunction) {
   Palette.findOne({
     _id: req.params.id,
-    user: (req.user as UserDocument).id
+    user: req.user.id
   })
   .then((palette) => {
     if (palette === null)
@@ -40,7 +40,7 @@ function getPaletteHandler(req: Request, res: Response, next: NextFunction) {
 
 function getPalettesHandler(req: Request, res: Response, next: NextFunction) {
   Palette.find({
-    user: (req.user as UserDocument).id
+    user: req.user.id
   })
   .then((palettes) => {
     return res.status(200).json(palettes);

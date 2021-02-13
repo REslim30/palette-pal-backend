@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { User, UserDocument } from "../models/User";
+import { User } from "../models/User";
 import jwt from "jsonwebtoken";
 import _ from "lodash";
 import logger from "../util/logger";
