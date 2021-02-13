@@ -11,6 +11,7 @@ import { UserInitializer } from "../util/UserInitializer";
 const client = redis.createClient();
 
 describe("User routes", () => {
+
   let user: UserInitializer;
   beforeEach(async () => {
     user = new UserInitializer();
@@ -274,7 +275,7 @@ describe("User routes", () => {
     test("should respond with 401 if 30 days has passed", async (done) => {
       const authRes = await loginRequest()
         .send(user.getLogin())
-        .expect(200)
+        .expect(200);
       
       const userDoc = authRes.body.user;
       client.expire(userDoc._id, 0, (err, reply) => {
@@ -285,7 +286,7 @@ describe("User routes", () => {
           .then(() => done());
       });
 
-    })
+    });
 
     test("should respond with a valid jwt if refresh_token is valid", async () => {
       const authRes = await loginRequest()
@@ -313,10 +314,10 @@ function loginRequest() {
 function refreshTokenRequest(refreshToken: string | string[]) {
   const req = request(app)
     .get("/refresh_token");
-  if (typeof refreshToken === 'string')
+  if (typeof refreshToken === "string")
     req.set("Cookie", `refresh_token=${refreshToken}`);
   else 
-    req.set("Cookie", refreshToken)
+    req.set("Cookie", refreshToken);
   
-  return req
+  return req;
 }

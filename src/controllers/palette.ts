@@ -31,11 +31,11 @@ function getPaletteHandler(req: Request, res: Response, next: NextFunction) {
     if (palette === null)
       return res.status(400).json({ message: "No palette found for id: " + req.params.id });
     
-    return res.status(200).json(palette);
+    return res.status(200).json(palette.toJSON());
   })
   .catch((err) => {
     return res.status(400).json(err);
-  })
+  });
 } 
 
 function getPalettesHandler(req: Request, res: Response, next: NextFunction) {
@@ -43,6 +43,6 @@ function getPalettesHandler(req: Request, res: Response, next: NextFunction) {
     user: req.user.id
   })
   .then((palettes) => {
-    return res.status(200).json(palettes);
-  })
+    return res.status(200).json(palettes.map((palette) => palette.toJSON()));
+  });
 }

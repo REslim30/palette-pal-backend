@@ -1,34 +1,34 @@
-import { Palette, Color, PaletteDocument } from "../../src/models/Palette";
+import { Palette, } from "../../src/models/Palette";
 import mongoose from "mongoose";
 import _ from "lodash";
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import { PaletteInitializer } from "../util/PaletteInitializer";
 import { UserInitializer } from "../util/UserInitializer";
-import { User, UserDocument } from "../../src/models/User";
+import { User } from "../../src/models/User";
+
+let db: mongoose.Connection;
+beforeAll(async () => {
+  db = await connectToMongoDB();
+  await db.dropDatabase();
+});
+
+afterAll(async () => {
+  await db.dropDatabase();
+  await db.close();
+});
 
 describe("Palette document", () => {
-  let db: mongoose.Connection;
   let user: UserDocument;
   beforeAll(async () => {
-    db = await connectToMongoDB();
-    // Create user
-    await User.deleteMany({});
     user = await new User(new UserInitializer()).save();
-  });
-
-  afterAll(async () => {
-    await db.close();
-  });
-
-  // Clean up database
-  afterEach(async () => {
-    await Palette.deleteMany({});
   });
 
   // Reset initializers
   let validPalette: PaletteDocument;
   let paletteInitalizer: PaletteInitializer;
   beforeEach(async () => {
+    await Palette.deleteMany({});
+
     paletteInitalizer = new PaletteInitializer();
     paletteInitalizer.user = user.id;
     validPalette = new Palette(paletteInitalizer);
@@ -100,7 +100,7 @@ describe("Palette document", () => {
   test("should throw if color is empty", async () => {
     paletteInitalizer.colors = [];
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
-  })
+  });
 
   describe("After saving to database", () => {
     let palette: PaletteDocument;

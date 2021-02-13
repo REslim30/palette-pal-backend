@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { NextFunction } from "express";
 import _ from "lodash";
+import toJSONOptions from "./util/toJSONOptions";
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -44,5 +45,7 @@ userSchema.methods.matchPassword = async function (this: UserDocument, password:
 userSchema.methods.toSendable = function (this: UserDocument) {
   return _.omit(this.toObject(), ["password", "__v"]);
 };
+
+userSchema.set("toJSON", toJSONOptions);
 
 export const User = mongoose.model<UserDocument, UserModel>("User", userSchema);

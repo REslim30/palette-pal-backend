@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import toJSONOptions from "./util/toJSONOptions";
 
 
 const paletteSchema = new mongoose.Schema({
@@ -15,8 +16,10 @@ const paletteSchema = new mongoose.Schema({
       message: (props: any) => `${props.path} must be greater than 1.`,
     }
   },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true }
 });
+
+paletteSchema.set("toJSON", toJSONOptions);
 
 export const Palette = mongoose.model<PaletteDocument>(
   "Palette",

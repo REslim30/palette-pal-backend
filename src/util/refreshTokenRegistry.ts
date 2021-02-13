@@ -13,7 +13,7 @@ export function verify(userId: string): Promise<boolean> {
 }
 
 export function register(userId: string): Promise<void> {
-  return setexAsync(userId, ms('30d')/1000, 1)
+  return setexAsync(userId, ms("30d")/1000, 1);
 }
 
 export function remove(userId: string): Promise<void> {

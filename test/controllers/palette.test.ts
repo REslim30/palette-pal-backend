@@ -7,6 +7,11 @@ import { PaletteInitializer } from "../util/PaletteInitializer";
 import _ from "lodash";
 
 describe("Palette routes", () => {
+  beforeAll(async () => {
+    await User.deleteMany({});
+    await Palette.deleteMany({});
+  });
+
   let user: UserInitializer;
   let jwt: any;
   let paletteInitializer: PaletteInitializer;
@@ -15,29 +20,24 @@ describe("Palette routes", () => {
     await User.create(user);
 
     const res = await request(app)
-      .post('/login')
+      .post("/login")
       .send(user.getLogin())
-      .expect(200)
+      .expect(200);
 
     jwt = res.body.jwt;
 
     paletteInitializer = new PaletteInitializer();
   });
 
-  beforeAll(async () => {
-    await User.deleteMany({});
-    await Palette.deleteMany({});
-  })
-
   afterEach(async () => {
     await User.deleteMany({});
     await Palette.deleteMany({});
-  })
+  });
 
   describe("POST /palettes (CREATE)", () => {
     test("should respond 401 if not logged in", () => {
       return request(app)
-        .post('/palettes')
+        .post("/palettes")
         .send({})
         .expect(401);
     });
@@ -45,7 +45,7 @@ describe("Palette routes", () => {
     test("should respond 415 if not json", async () => {
       return postPalette("")
         .expect(415);
-    })
+    });
 
     test("should respond with a 400 request if name doesn't exist", async() => {
       paletteInitializer.name = "";
@@ -56,36 +56,36 @@ describe("Palette routes", () => {
       const res = await postPalette(paletteInitializer).expect(200);
 
       const paletteDoc = await Palette.findOne({name: paletteInitializer.name});
-      expect(paletteDoc.id).toBe(res.body._id);
-    })
+      expect(paletteDoc.id).toBe(res.body.id);
+    });
 
     test("should respond with 400 if color is invalid", async () => {
-      paletteInitializer.colors[0].name = ""
+      paletteInitializer.colors[0].name = "";
       await postPalette(paletteInitializer).expect(400);
     });
 
     test("should resond with 400 if a shade is invalid", async () => {
-      paletteInitializer.colors[0].shades[0] = "randomString"
+      paletteInitializer.colors[0].shades[0] = "randomString";
       await postPalette(paletteInitializer).expect(400);
-    })
+    });
 
-  })
+  });
 
   describe("GET /palettes/:id (READ)", () => {
     test("should respond with 401 if unauthenticated", async () => {
       await request(app)
-        .get('/palettes/0')
+        .get("/palettes/0")
         .expect(401);
     });
 
     test("should respond with 400 if invalid mongoose id", async () => {
-      const res = await getPalette('0')
-        .expect(400)
+      const res = await getPalette("0")
+        .expect(400);
     });
 
     test("should respond with 400 if palette not found", async() => {
-      const res = await getPalette('0'.repeat(24))
-        .expect(400)
+      const res = await getPalette("0".repeat(24))
+        .expect(400);
 
       expect(res.body.message).toMatch(/No palette found for id: /);
     });
@@ -94,24 +94,24 @@ describe("Palette routes", () => {
       const postRes = await postPalette(paletteInitializer)
         .expect(200);
 
-      const res = await getPalette(postRes.body._id)
-        .expect(200)
+      const res = await getPalette(postRes.body.id)
+        .expect(200);
       
-      expect(res.body._id).toBe(postRes.body._id);
+      expect(res.body.id).toBe(postRes.body.id);
       expect(_.isMatch(res.body, paletteInitializer)).toBe(true);
-    })
-  })
+    });
+  });
 
   describe("GET /palettes (READ ALL)", () => {
     test("should respond 401 if unauthenticated", async () => {
       await request(app)
-        .get('/palettes')
-        .expect(401)
+        .get("/palettes")
+        .expect(401);
     });
 
     test("should respond with 200 and empty array if none found", async () => {
       const res = await getPalettes()
-        .expect(200)
+        .expect(200);
 
       expect(res.body.length).toBe(0);
     });
@@ -122,10 +122,10 @@ describe("Palette routes", () => {
       const paletteTwo = (await postPalette(paletteInitializer).expect(200)).body;
 
       const res = await getPalettes()
-        .expect(200)
+        .expect(200);
 
-      expect(res.body.contains(paletteOne)).toBe(true);
-      expect(res.body.contains(paletteTwo)).toBe(true);
+      expect(res.body.reduce((acc: boolean, cur: any) => acc || _.isEqual(cur, paletteOne), false)).toBe(true);
+      expect(res.body.reduce((acc: boolean, cur: any) => acc || _.isEqual(cur, paletteTwo), false)).toBe(true);
     });
   });
 
@@ -138,13 +138,13 @@ describe("Palette routes", () => {
 
   function getPalette(id: string) {
     return request(app)
-      .get('/palettes/' + id)
+      .get("/palettes/" + id)
       .set("Authorization", "Bearer " + jwt);
   }
 
   function getPalettes() {
     return request(app)
-      .get('/palettes')
+      .get("/palettes")
       .set("Authorization", "Bearer " + jwt);
   }
-})
+});

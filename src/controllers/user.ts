@@ -10,7 +10,7 @@ import checkJSON from "../middleware/checkJSON";
 
 export const postRegister = compose([checkJSON, postRegisterErrorHandler, registerRefreshToken, sendJWT]);
 export const postLogin = compose([checkJSON, postLoginHandler, registerRefreshToken, sendJWT]);
-export const getRefreshToken = compose([getRefreshTokenHandler, sendJWT])
+export const getRefreshToken = compose([getRefreshTokenHandler, sendJWT]);
 export { getUsersMe };
 
 
@@ -91,7 +91,7 @@ function registerRefreshToken(req: Request, res: Response, next: NextFunction) {
     sameSite: "None",
   });
   refreshTokenRegistry.register(user.id)
-    .then(() => next())
+    .then(() => next());
 }
 
 async function getRefreshTokenHandler(req: Request, res: Response, next: NextFunction) {
@@ -114,9 +114,9 @@ async function getRefreshTokenHandler(req: Request, res: Response, next: NextFun
       User.findOne({ _id: payload.sub })
         .then((user: UserDocument) => {
           req.user = user;
-          next()
+          next();
         });
-    })
+    });
 }
 
 function sendJWT(req: Request, res: Response) {

@@ -1,12 +1,10 @@
-import { Color } from "../../src/models/Palette";
-
 export class PaletteInitializer {
   name: string;
   colors: Color[];
   user: string;
 
   constructor() {
-    this.name = 'Example Palette';
+    this.name = "Example Palette";
     this.colors = [
       {
         name: "Primary Color",
@@ -25,6 +23,6 @@ export class PaletteInitializer {
           "#eeccaa"
         ]
       },
-    ]
+    ];
   }
 }

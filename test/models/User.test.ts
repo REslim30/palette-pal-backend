@@ -1,30 +1,28 @@
-import { UserDocument, User } from "../../src/models/User";
+import { User } from "../../src/models/User";
 import mongoose from "mongoose";
 import { MongoError, ValidationError } from "mongoose/node_modules/mongodb";
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import bcrypt from "bcrypt";
 import _ from "lodash";
+import { UserInitializer } from "../util/UserInitializer";
+
+let db: mongoose.Connection;
+beforeAll(async () => {
+  db = await connectToMongoDB();
+});
+
+afterAll(async () => {
+  await db.dropDatabase();
+  await db.close();
+});
 
 describe("User model", () => {
-  let db: mongoose.Connection;
-  beforeAll(async () => {
-    db = await connectToMongoDB();
-  });
-
-  afterAll(async () => {
-    await db.close();
-  });
-
-  // Clean up database
-  afterEach(async () => {
-    await User.deleteMany({});
-  });
-  
   let validUser: UserDocument;
   let userInitializer: User;
-  beforeEach(() => {
-    validUser = new User(getUserInitializer());
-    userInitializer = getUserInitializer();
+  beforeEach(async () => {
+    validUser = new User(new UserInitializer());
+    userInitializer = new UserInitializer();
+    await User.deleteMany({});
   });
 
   test("should have a username field", () => {
@@ -71,12 +69,12 @@ describe("User model", () => {
   });
 
   test("should throw if username is duplciate", async () => {
-    await new User(userInitializer).save();
+    await User.create(userInitializer);
     userInitializer.email = "different@email.com";
-    await expect(new User(userInitializer).save()).rejects.toThrow(MongoError);
+    await expect(User.create(userInitializer)).rejects.toThrow(MongoError);
   });
 
-  test("should throw if password is duplicate", async () => {
+  test("should throw if email is duplicate", async () => {
     await new User(userInitializer).save();
     userInitializer.username = "differentUsername";
     await expect(new User(userInitializer).save()).rejects.toThrow(MongoError);
@@ -122,11 +120,3 @@ describe("User model", () => {
     });
   });
 });
-
-function getUserInitializer() {
-  return {
-    username: "testUser18",
-    email: "testUser18@gmail.com",
-    password: "testUser18"
-  };
-}
