@@ -42,10 +42,10 @@ userSchema.methods.matchPassword = async function (this: UserDocument, password:
   return bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.toSendable = function (this: UserDocument) {
-  return _.omit(this.toObject(), ["password", "__v"]);
-};
-
 userSchema.set("toJSON", toJSONOptions);
+
+userSchema.methods.toSendable = function (this: UserDocument) {
+  return _.omit(this.toJSON(), ["password"]);
+};
 
 export const User = mongoose.model<UserDocument, UserModel>("User", userSchema);

@@ -129,6 +129,26 @@ describe("Palette routes", () => {
     });
   });
 
+  describe("PUT /palettes/:id (UPDATE)", () => {
+    test("should respond 401 if not authenticated", () => {
+      return request(app)
+        .put("/palettes/0")
+        .expect(401)
+    });
+
+    test("should respond 400 if invalid mongo id", () => {
+      return putPalette('0', {})
+        .expect(400)
+    });
+  })
+
+  function putPalette(id: string, body: any) {
+    return request(app)
+      .put("/palettes")
+      .set("Authorization", "Bearer " + jwt)
+      .send(body);
+  }
+
   function postPalette(body: any) {
     return request(app)
       .post("/palettes")

@@ -111,11 +111,11 @@ describe("User model", () => {
       await expect(user.matchPassword("incorrect-password")).resolves.toBe(false);
     });
   });
-  describe("UserDocument.prototype.toSendable()", () => {
+  describe("UserDocument.prototype.toJSON()", () => {
     test("should return object without password", async () => {
       const user = await new User(userInitializer).save();
       const sendableUser = user.toSendable();
-      expect(_.isMatch(user, sendableUser)).toBe(true);
+      expect(_.isMatch(user, _.omit(sendableUser,"id"))).toBe(true);
       expect((sendableUser as any).password).toBe(undefined);
     });
   });

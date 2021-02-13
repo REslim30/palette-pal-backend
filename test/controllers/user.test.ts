@@ -23,18 +23,18 @@ describe("User routes", () => {
     test("Should 200 for valid input", async () => {
       const res = await registerRequest().send(user).expect(200);
 
-      const { _id, ...result } = res.body.user;
+      const { id, ...result } = res.body.user;
       expect(_.isMatch(user, result)).toBe(true);
-      const users = await User.find({ _id });
+      const users = await User.find({ _id: id });
       expect(users.length).toBe(1);
-      expect(users[0].id).toBe(_id);
+      expect(users[0].id).toBe(id);
     });
 
     test("should send a valid jwt upon sucess", async () => {
       const res = await registerRequest().send(user).expect(200);
 
       const decoded = jwt.decode(res.body.jwt, { json: true });
-      expect(decoded.sub).toBe(res.body.user._id);
+      expect(decoded.sub).toBe(res.body.user.id);
     });
 
     test("should respond with a refresh_token, set as a cookie with HttpOnly, sameSite=None, Secure", async () => {
@@ -147,9 +147,9 @@ describe("User routes", () => {
       const res = await loginRequest().send(userLogin).expect(200);
 
       const decoded = jwt.decode(res.body.jwt, { json: true });
-      expect(decoded.sub).toBe(res.body.user._id);
+      expect(decoded.sub).toBe(res.body.user.id);
 
-      expect(_.isMatch(res.body.user, _.omit(user, ["password"]))).toBe(true);
+      expect(_.isMatch(res.body.user, _.omit(user, ["password", "id"]))).toBe(true);
       expect(res.body.user.password).toBe(undefined);
     });
 
@@ -278,7 +278,7 @@ describe("User routes", () => {
         .expect(200);
       
       const userDoc = authRes.body.user;
-      client.expire(userDoc._id, 0, (err, reply) => {
+      client.expire(userDoc.id, 0, (err, reply) => {
         if (err) done(err);
 
         refreshTokenRequest(authRes.get("Set-Cookie"))
