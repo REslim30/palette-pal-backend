@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import toJSONOptions from "./util/toJSONOptions";
 
 
-const paletteSchema = new mongoose.Schema({
+const paletteSchema = new Schema({
   name: { type: String, required: true },
   colors: {
     type: [{
