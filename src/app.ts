@@ -62,6 +62,8 @@ paletteRoutes.use(passport.authenticate("jwt", { session: false }));
 paletteRoutes.post("/", paletteController.postPalettes);
 paletteRoutes.get("/", paletteController.getPalettes);
 paletteRoutes.get("/:id", paletteController.getPalette);
+paletteRoutes.put("/:id", paletteController.putPalette);
+paletteRoutes.delete("/:id", paletteController.deletePalette);
 app.use("/palettes", paletteRoutes);
 
 export default app;
