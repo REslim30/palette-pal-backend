@@ -73,5 +73,6 @@ groupRoutes.post("/", groupController.postGroup)
 groupRoutes.get("/:id", groupController.getGroup)
 groupRoutes.get("/", groupController.getGroups)
 groupRoutes.put("/:id", groupController.putGroup);
+groupRoutes.delete("/:id", groupController.deleteGroup);
 app.use("/groups", groupRoutes);
 export default app;

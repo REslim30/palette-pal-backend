@@ -186,6 +186,40 @@ describe("group routes", () => {
     });
   })
 
+  describe("DELETE /groups/:id (DELETE)", () => {
+    test("should respond 401 if unauthenticated", () => {
+      return request(app)
+        .delete('/groups')
+        .expect(401)
+    });
+
+    test("should respond 400 if invalid mongo id", () => {
+      return deleteGroup('0')
+        .expect(400);
+    });
+
+    test("should respond 400 if group not found", () => {
+      return deleteGroup('0'.repeat(24))
+        .expect(400)
+    });
+
+    test("should respond 200 and group if found", async () => {
+      const postRes = await postGroup(groupInitializer).expect(200);
+
+      const res = await deleteGroup(postRes.body.id).expect(200);
+      
+      expect(res.body).toStrictEqual(postRes.body)
+
+      expect(Group.findById(res.body.id)).resolves.toBe(null);
+    });
+
+    test("should not be able to access another users group", async () => {
+      const group = await otherUserGroup();
+
+      const res = await deleteGroup(group.id).expect(400);
+    });
+  });
+
   function postGroup(body: any) {
     return request(app)
       .post('/groups')
@@ -203,6 +237,12 @@ describe("group routes", () => {
     return request(app)
       .put('/groups/' + id)
       .send(body)
+      .set("Authorization", "Bearer " + jwt);
+  }
+
+  function deleteGroup(id: string) {
+    return request(app)
+      .delete('/groups/' + id)
       .set("Authorization", "Bearer " + jwt);
   }
 

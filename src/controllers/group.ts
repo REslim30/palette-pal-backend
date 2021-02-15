@@ -8,6 +8,7 @@ export const postGroup = compose([checkJSON, postGroupHandler]);
 export const getGroup = getGroupHandler;
 export const getGroups = getGroupsHandler;
 export const putGroup = putGroupHandler;
+export const deleteGroup = deleteGroupHandler;
 
 function postGroupHandler(req: Request, res: Response, next: NextFunction) {
   Group.create({
@@ -62,4 +63,18 @@ function putGroupHandler(req: Request, res: Response, next: NextFunction) {
     .catch((err) => {
       return res.status(400).json(err);
     });
+}
+
+function deleteGroupHandler(req: Request, res: Response, next: NextFunction) {
+  Group.findOneAndDelete({
+    _id: req.params.id,
+    user: req.user.id,
+  })
+  .then((group) => {
+    if (!group)
+      return res.status(400).json({ message: "No group found for id: " + req.params.id })
+    
+    return res.status(200).json(group.toJSON());
+  })
+  .catch((err) => res.status(400).json(err))
 }
