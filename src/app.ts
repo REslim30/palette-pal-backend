@@ -71,5 +71,7 @@ const groupRoutes = express.Router();
 groupRoutes.use(passport.authenticate("jwt", { session: false }));
 groupRoutes.post("/", groupController.postGroup)
 groupRoutes.get("/:id", groupController.getGroup)
+groupRoutes.get("/", groupController.getGroups)
+groupRoutes.put("/:id", groupController.putGroup);
 app.use("/groups", groupRoutes);
 export default app;
