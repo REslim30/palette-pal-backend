@@ -3,10 +3,10 @@ export class UserInitializer {
   email: string;  
   username: string;
   password: string;
-  constructor() {
-    this.username = "testuser18";
-    this.email = "testuser18@gmail.com";
-    this.password = "testuser18password";
+  constructor(props: any = {}) {
+    this.username = props.username || "testuser18";
+    this.email = props.email || "testuser18@gmail.com";
+    this.password = props.password || "testuser18password";
   } 
 
   getLogin() {

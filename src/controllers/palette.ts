@@ -1,8 +1,7 @@
 import { Palette } from "../models/Palette";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import checkJSON from "../middleware/checkJSON";
 import { compose } from "compose-middleware";
-import { NextFunction } from "connect";
 
 export const postPalettes = compose([checkJSON, postPalettesHandler]);
 export const getPalette = getPaletteHandler;

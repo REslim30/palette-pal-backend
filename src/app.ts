@@ -18,6 +18,7 @@ const MongoStore = mongo(session);
 // Controllers (route handlers)
 import * as userController from "./controllers/user";
 import * as paletteController from "./controllers/palette";
+import * as groupController from "./controllers/group";
 
 // Create Express server
 const app = express();
@@ -66,4 +67,9 @@ paletteRoutes.put("/:id", paletteController.putPalette);
 paletteRoutes.delete("/:id", paletteController.deletePalette);
 app.use("/palettes", paletteRoutes);
 
+const groupRoutes = express.Router();
+groupRoutes.use(passport.authenticate("jwt", { session: false }));
+groupRoutes.post("/", groupController.postGroup)
+groupRoutes.get("/:id", groupController.getGroup)
+app.use("/groups", groupRoutes);
 export default app;
