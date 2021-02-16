@@ -45,7 +45,7 @@ describe("group routes", () => {
   describe("POST /groups", () => {
     test("should respond 401 if unauthenticated", () => {
       return request(app)
-        .post('/groups')
+        .post("/groups")
         .send({})
         .expect(401);
     });
@@ -58,15 +58,15 @@ describe("group routes", () => {
 
     test("should respond with a 415 if not JSON body", () => {
       return postGroup("hello")
-        .expect(415)
-    })
+        .expect(415);
+    });
 
     test("should respond with a 200, and the new group created, if valid group object", async () => {
       const res = await postGroup(groupInitializer)
         .expect(200);
       
       const group = await Group.findById(res.body.id);
-      expect(group.id).toBe(res.body.id)
+      expect(group.id).toBe(res.body.id);
     });
 
     test("should attach user to group", async () => {
@@ -81,27 +81,27 @@ describe("group routes", () => {
   describe("GET /groups/:id (READ)", () => {
     test("should return 401 if unauthenticated", () => {
       return request(app)
-        .get('/palettes/0')
-        .expect(401)
+        .get("/palettes/0")
+        .expect(401);
     });
 
     test("should return 400 if invalid mongo id", () => {
-      return getGroup('0')
-        .expect(400)
+      return getGroup("0")
+        .expect(400);
     });
 
     test("should return 400 if group not found", async () => {
-      const res = await getGroup('0'.repeat(24))
-        .expect(400)
+      const res = await getGroup("0".repeat(24))
+        .expect(400);
 
-      expect(res.body.message).toMatch("No group found for id: ")
-    })
+      expect(res.body.message).toMatch("No group found for id: ");
+    });
 
     test("should return 200 and the group if found", async() => {
       const postRes = await postGroup(groupInitializer);
 
       const res = await getGroup(postRes.body.id)
-        .expect(200)
+        .expect(200);
 
       expect(postRes.body).toStrictEqual(res.body);
     });
@@ -110,22 +110,22 @@ describe("group routes", () => {
       const otherGroup = await otherUserGroup();
 
       const res = await getGroup(otherGroup.id)
-        .expect(400)
+        .expect(400);
       
       expect(res.body.message).toMatch("No group found for id: ");
     });
-  })
+  });
 
   describe("GET /groups (READALL)", () => {
     test("should respond 401 if unauthenticated", () => {
       return request(app)
-        .get('/groups')
-        .expect(401)
+        .get("/groups")
+        .expect(401);
     });
 
     test("should respond 200 and an empty array if no groups fround", async () => {
       const res = await getGroup()
-        .expect(200)
+        .expect(200);
       
       expect(res.body).toStrictEqual([]);
     });
@@ -135,7 +135,7 @@ describe("group routes", () => {
       const palette2Res = await postGroup(new GroupInitializer()).expect(200);
 
       const res = await getGroup()
-        .expect(200)
+        .expect(200);
       
       expect(res.body).toStrictEqual([palette1Res.body, palette2Res.body]);
     });
@@ -144,7 +144,7 @@ describe("group routes", () => {
       await otherUserGroup();
 
       const res = await getGroup()
-        .expect(200)
+        .expect(200);
 
       expect(res.body).toStrictEqual([]);
     });
@@ -153,21 +153,21 @@ describe("group routes", () => {
   describe("PUT /groups/:id", () => {
     test("should respond with a 401 if not authenticated", () => {
       return request(app)
-        .put('/palettes/0')
-        .expect(401)
+        .put("/palettes/0")
+        .expect(401);
     });
 
     test("should respond with a 400 if invalid mongo id", () => {
-      return putGroup('0')
-        .expect(400)
+      return putGroup("0")
+        .expect(400);
     });
 
     test("should respond with a 400 if no group found", async () => {
-      const res = await putGroup('0'.repeat(24))
-        .expect(400)
+      const res = await putGroup("0".repeat(24))
+        .expect(400);
       
       expect(res.body.message).toMatch("No group found for id: ");
-    })
+    });
 
     test("should respond with 200 if found", async () => {
       const groupRes = await postGroup(groupInitializer).expect(200);
@@ -188,27 +188,27 @@ describe("group routes", () => {
     test("should not be able to update another users group", async () => {
       const otherGroup = await otherUserGroup();
 
-      const res = await putGroup(otherGroup.id).expect(400)
+      const res = await putGroup(otherGroup.id).expect(400);
 
-      expect(res.body.message).toMatch("No group found for id: ")
+      expect(res.body.message).toMatch("No group found for id: ");
     });
-  })
+  });
 
   describe("DELETE /groups/:id (DELETE)", () => {
     test("should respond 401 if unauthenticated", () => {
       return request(app)
-        .delete('/groups')
-        .expect(401)
+        .delete("/groups")
+        .expect(401);
     });
 
     test("should respond 400 if invalid mongo id", () => {
-      return deleteGroup('0')
+      return deleteGroup("0")
         .expect(400);
     });
 
     test("should respond 400 if group not found", () => {
-      return deleteGroup('0'.repeat(24))
-        .expect(400)
+      return deleteGroup("0".repeat(24))
+        .expect(400);
     });
 
     test("should respond 200 and group if found", async () => {
@@ -216,7 +216,7 @@ describe("group routes", () => {
 
       const res = await deleteGroup(postRes.body.id).expect(200);
       
-      expect(res.body).toStrictEqual(postRes.body)
+      expect(res.body).toStrictEqual(postRes.body);
 
       expect(Group.findById(res.body.id)).resolves.toBe(null);
     });
@@ -230,32 +230,32 @@ describe("group routes", () => {
 
   function postGroup(body: any) {
     return request(app)
-      .post('/groups')
+      .post("/groups")
       .send(body)
       .set("Authorization", "Bearer " + jwt);
   }
 
-  function getGroup(id: string = '') {
+  function getGroup(id: string = "") {
     return request(app)
-      .get('/groups/' + id)
+      .get("/groups/" + id)
       .set("Authorization", "Bearer " + jwt);
   }
   
   function putGroup(id: string, body: any = {}) {
     return request(app)
-      .put('/groups/' + id)
+      .put("/groups/" + id)
       .send(body)
       .set("Authorization", "Bearer " + jwt);
   }
 
   function deleteGroup(id: string) {
     return request(app)
-      .delete('/groups/' + id)
+      .delete("/groups/" + id)
       .set("Authorization", "Bearer " + jwt);
   }
 
   async function otherUserGroup() {
-    const userInit = new UserInitializer({ username: "differentUser", email: "differentUser@gmail.com" })
+    const userInit = new UserInitializer({ username: "differentUser", email: "differentUser@gmail.com" });
     const user = await new User(userInit);
     return Group.create(new GroupInitializer({user: user.id}));
   }

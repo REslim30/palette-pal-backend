@@ -78,11 +78,11 @@ function deletePaletteHandler(req: Request, res: Response, next: NextFunction) {
   })
   .then((palette) => {
     if (!palette)
-      return res.status(400).json({ message: "No palette found for id: " + req.params.id })
+      return res.status(400).json({ message: "No palette found for id: " + req.params.id });
 
     return res.status(200).json(palette.toJSON());    
   })
   .catch((err) => {
     return res.status(400).json(err);
-  })
+  });
 }

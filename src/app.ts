@@ -48,9 +48,10 @@ app.use((req, res, next) => {
     next();
 });
 // Allow cors credentials on one specific route
-const allowedOrigins = ["https://playcode.io"];
-app.use(/^\/refresh_token/, cors({ origin: allowedOrigins, credentials: true })); 
-app.use(cors({ origin: allowedOrigins }));
+const allowedOrigins = [process.env.FRONTEND_URL];
+// app.use(/^\/refresh_token/, cors({ origin: allowedOrigins, credentials: true })); 
+app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: ["Set-Cookie"] })); 
+// app.use(cors({ origin: allowedOrigins }));
 
 // Authentication routes
 app.post("/register", userController.postRegister);
@@ -69,9 +70,9 @@ app.use("/palettes", paletteRoutes);
 
 const groupRoutes = express.Router();
 groupRoutes.use(passport.authenticate("jwt", { session: false }));
-groupRoutes.post("/", groupController.postGroup)
-groupRoutes.get("/:id", groupController.getGroup)
-groupRoutes.get("/", groupController.getGroups)
+groupRoutes.post("/", groupController.postGroup);
+groupRoutes.get("/:id", groupController.getGroup);
+groupRoutes.get("/", groupController.getGroups);
 groupRoutes.put("/:id", groupController.putGroup);
 groupRoutes.delete("/:id", groupController.deleteGroup);
 app.use("/groups", groupRoutes);

@@ -89,6 +89,7 @@ function registerRefreshToken(req: Request, res: Response, next: NextFunction) {
     httpOnly: true,
     secure: true,
     sameSite: "None",
+    path: "/refresh_token"
   });
   refreshTokenRegistry.register(user.id)
     .then(() => next());

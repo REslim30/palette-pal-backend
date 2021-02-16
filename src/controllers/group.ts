@@ -72,9 +72,9 @@ function deleteGroupHandler(req: Request, res: Response, next: NextFunction) {
   })
   .then((group) => {
     if (!group)
-      return res.status(400).json({ message: "No group found for id: " + req.params.id })
+      return res.status(400).json({ message: "No group found for id: " + req.params.id });
     
     return res.status(200).json(group.toJSON());
   })
-  .catch((err) => res.status(400).json(err))
+  .catch((err) => res.status(400).json(err));
 }

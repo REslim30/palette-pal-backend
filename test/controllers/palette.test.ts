@@ -105,7 +105,7 @@ describe("Palette routes", () => {
       const newPalette = await otherUserPalette();
 
       const res = await getPalette(newPalette.id)
-        .expect(400)
+        .expect(400);
     });
   });
 
@@ -139,7 +139,7 @@ describe("Palette routes", () => {
       const newPalette = await otherUserPalette();
 
       const res = await getPalettes()
-        .expect(200)
+        .expect(200);
       
       expect(res.body.length).toBe(0);
     });
@@ -149,17 +149,17 @@ describe("Palette routes", () => {
     test("should respond 401 if not authenticated", () => {
       return request(app)
         .put("/palettes/0")
-        .expect(401)
+        .expect(401);
     });
 
     test("should respond 400 if invalid mongo id", () => {
-      return putPalette('0', {})
-        .expect(400)
+      return putPalette("0", {})
+        .expect(400);
     });
 
     test("should respond 400 if palette not found", async () => {
-      const res = await putPalette('0'.repeat(24), {})
-        .expect(400)
+      const res = await putPalette("0".repeat(24), {})
+        .expect(400);
 
       expect(res.body.message).toMatch(/No palette found for id:/);
     });
@@ -168,84 +168,84 @@ describe("Palette routes", () => {
       const palette = (await postPalette(paletteInitializer).expect(200)).body;
 
       await putPalette(palette.id, {})
-        .expect(200)
+        .expect(200);
     });
 
     test("should overwite fields with new variables and return saved document", async () => {
       const palette = (await postPalette(paletteInitializer).expect(200)).body;
 
       const res = await putPalette(palette.id, { name: "new name" })
-        .expect(200)
+        .expect(200);
 
       const newPalette = await Palette.findById(palette.id);
 
       expect(newPalette.name).toBe("new name");
       expect(palette.id).toBe(res.body.id);
-    })
+    });
 
     test("should respond with 400 if new palette is invalid", async () => {
       const palette = (await postPalette(paletteInitializer).expect(200)).body;
 
       const res = await putPalette(palette.id, { name: "" })
-        .expect(400)
-    })
+        .expect(400);
+    });
 
     test("should ignore properties that don't exist on the palette", async () => {
       const palette = (await postPalette(paletteInitializer).expect(200)).body;
 
       await putPalette(palette.id, { name: "hello world", propertyThatDoesntExist: "hello" })
-        .expect(200)
-    })
+        .expect(200);
+    });
 
     test("should not be able to acess another user's palette", async () => {
       const newPalette = await otherUserPalette();
 
       const res = await putPalette(newPalette.id, {})
-        .expect(400)
+        .expect(400);
     });
-  })
+  });
 
   describe("DELETE /palettes/:id (DELETE)", () => {
     test("should respond 401 if unauthenticated", () => {
       return request(app)
-        .delete('/palettes/0')
-        .expect(401)
+        .delete("/palettes/0")
+        .expect(401);
     });
 
     test("should respond 400 if invalid mongo id", async () => {
       const res = await deletePalette("0")
-        .expect(400)
+        .expect(400);
     });
 
     test("should respond 400 if palette doesn't exist", async () => {
       const res = await deletePalette("0".repeat(24))
-        .expect(400)
+        .expect(400);
         
       expect(res.body.message).toMatch(/No palette found for id:/);
-    })
+    });
 
     test("should not be able to acess another user's palette", async () => {
       const newPalette = await otherUserPalette();
 
       const res = await deletePalette(newPalette.id)
-        .expect(400)
+        .expect(400);
     });
 
     describe("after a palette is created", () => {
       let palette: PaletteDocument;
       beforeEach(async () => {
         palette = (await postPalette(paletteInitializer).expect(200)).body;
-      })
+      });
 
       test("should respond 200 and palette if palette does exist. Palette also should no longer exist.", async () => {
         const res = await deletePalette(palette.id)
-          .expect(200)
+          .expect(200);
 
         expect(palette.id).toBe(res.body.id);
         expect(Palette.findById(palette.id)).resolves.toBe(null);
       });
 
-    })
+    });
   });
 
   function putPalette(id: string, body: any) {
@@ -282,11 +282,11 @@ describe("Palette routes", () => {
 
   async function otherUserPalette() {
     const newUserInit = new UserInitializer();
-    newUserInit.username = "newUser"
-    newUserInit.email = "newUser@gmail.com"
+    newUserInit.username = "newUser";
+    newUserInit.email = "newUser@gmail.com";
     const user = await new User(newUserInit).save();
     const newPaletteInitializer = new PaletteInitializer();
-    newPaletteInitializer.user = user.id
+    newPaletteInitializer.user = user.id;
     return await new Palette(newPaletteInitializer).save();
   }
 });

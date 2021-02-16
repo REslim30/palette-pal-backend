@@ -31,26 +31,26 @@ describe("Group Model", () => {
       palettes: [palette1.id, palette2.id],
       user: user.id
     };
-  })
+  });
   
   test("should have a name field", () => {
     const group = new Group(groupInitializer);
 
     expect(group.name).toBe("testGroup");
-  })
+  });
 
   test("name field should be required", () => {
     groupInitializer.name = "";
 
-    return expect(new Group(groupInitializer).validate()).rejects.toThrow()
-  })
+    return expect(new Group(groupInitializer).validate()).rejects.toThrow();
+  });
 
   test("should have a palettes field", () => {
     const group = new Group(groupInitializer);
 
     expect(group.palettes.includes(palette1.id)).toBe(true);
     expect(group.palettes.includes(palette2.id)).toBe(true);
-  })
+  });
 
   test("should have a users field", () => {
     const group = new Group(groupInitializer);
@@ -70,7 +70,7 @@ describe("Group Model", () => {
 
     expect(groupJSON.id.toString()).toBe(group.id);
     expect(groupJSON._id).toBe(undefined);
-  })
+  });
 
   test("Model should be able to populate fields successfully", async () => {
     await palette1.save();
