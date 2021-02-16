@@ -6,6 +6,7 @@ import { UserInitializer } from "../util/UserInitializer";
 import GroupInitializer from "../util/GroupInitializer";
 import Group from "../../src/models/Group";
 import _ from "lodash";
+import { PaletteInitializer } from "../util/PaletteInitializer";
 
 beforeAll(async () => {
   await User.deleteMany({});
@@ -18,8 +19,12 @@ describe("group routes", () => {
   let user: UserDocument;
   let jwt: any;
   let groupInitializer: GroupInitializer;
+  let palette1: PaletteDocument;
+  let palette2: PaletteDocument;
   beforeEach(async () => {
     await User.deleteMany({});
+    await Group.deleteMany({});
+    await Palette.deleteMany({});
     const userInitializer = new UserInitializer(); 
     user = await new User(userInitializer).save();
 
@@ -30,8 +35,11 @@ describe("group routes", () => {
 
     jwt = res.body.jwt;
 
-    groupInitializer = new GroupInitializer({ user: "randomid" });
-    await Group.deleteMany({});
+    palette1 = new Palette(new PaletteInitializer({ name: "palette1", user: user.id }));
+    palette2 = new Palette(new PaletteInitializer({ name: "palette2", user: user.id }));
+    palette1 = await palette1.save();
+    palette2 = await palette2.save();
+    groupInitializer = new GroupInitializer({ user: "randomid", palettes: [palette1.id, palette2.id] });
   });
 
   describe("POST /groups", () => {
@@ -95,7 +103,7 @@ describe("group routes", () => {
       const res = await getGroup(postRes.body.id)
         .expect(200)
 
-      expect(_.isEqual(postRes.body, res.body)).toBe(true);
+      expect(postRes.body).toStrictEqual(res.body);
     });
 
     test("should not return a group that belongs to another user", async () => {
@@ -104,7 +112,7 @@ describe("group routes", () => {
       const res = await getGroup(otherGroup.id)
         .expect(400)
       
-      expect(res.body.message).toMatch("No group found for id: ")
+      expect(res.body.message).toMatch("No group found for id: ");
     });
   })
 

@@ -28,17 +28,17 @@ function getGroupHandler(req: Request, res: Response, next: NextFunction) {
     _id: req.params.id,
     user: req.user.id,
   })
-    .then((group) => {
-      if (!group)
-        return res
-          .status(400)
-          .json({ message: "No group found for id: " + req.params.id });
+  .then((group) => {
+    if (!group)
+      return res
+        .status(400)
+        .json({ message: "No group found for id: " + req.params.id });
 
-      return res.status(200).json(group.toJSON());
-    })
-    .catch((err) => {
-      return res.status(400).json(err);
-    });
+    return res.status(200).json(group.toJSON());
+  })
+  .catch((err) => {
+    return res.status(400).json(err);
+  });
 }
 
 function getGroupsHandler(req: Request, res: Response, next: NextFunction) {
