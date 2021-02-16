@@ -5,13 +5,13 @@ import session from "express-session";
 import bodyParser from "body-parser";
 import mongo from "connect-mongo";
 import flash from "express-flash";
-import path from "path";
 import mongoose from "mongoose";
 import bluebird from "bluebird";
 import { MONGODB_URI } from "./util/secrets";
 import passport from "./config/passport";
 import morgan from "morgan";
 import cors from "cors";
+import { jwtCheck } from "./config/auth";
 
 const MongoStore = mongo(session);
 
@@ -47,20 +47,18 @@ app.use((req, res, next) => {
     res.locals.user = req.user;
     next();
 });
-// Allow cors credentials on one specific route
+
 const allowedOrigins = [process.env.FRONTEND_URL];
-// app.use(/^\/refresh_token/, cors({ origin: allowedOrigins, credentials: true })); 
 app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: ["Set-Cookie"] })); 
-// app.use(cors({ origin: allowedOrigins }));
 
 // Authentication routes
 app.post("/register", userController.postRegister);
-app.get("/users/me", passport.authenticate("jwt", { session: false }), userController.getUsersMe);
+app.get("/users/me", jwtCheck, userController.getUsersMe);
 app.post("/login", userController.postLogin);
 app.get("/refresh_token", userController.getRefreshToken);
 
 const paletteRoutes = express.Router();
-paletteRoutes.use(passport.authenticate("jwt", { session: false }));
+paletteRoutes.use(jwtCheck);
 paletteRoutes.post("/", paletteController.postPalettes);
 paletteRoutes.get("/", paletteController.getPalettes);
 paletteRoutes.get("/:id", paletteController.getPalette);
@@ -69,7 +67,7 @@ paletteRoutes.delete("/:id", paletteController.deletePalette);
 app.use("/palettes", paletteRoutes);
 
 const groupRoutes = express.Router();
-groupRoutes.use(passport.authenticate("jwt", { session: false }));
+paletteRoutes.use(jwtCheck);
 groupRoutes.post("/", groupController.postGroup);
 groupRoutes.get("/:id", groupController.getGroup);
 groupRoutes.get("/", groupController.getGroups);
