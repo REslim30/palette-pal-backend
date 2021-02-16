@@ -8,7 +8,6 @@ import flash from "express-flash";
 import mongoose from "mongoose";
 import bluebird from "bluebird";
 import { MONGODB_URI } from "./util/secrets";
-import passport from "./config/passport";
 import morgan from "morgan";
 import cors from "cors";
 import { jwtCheck } from "./config/auth";

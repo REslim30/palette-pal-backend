@@ -26,6 +26,7 @@
         "watch-ts": "tsc -w"
     },
     "dependencies": {
+        "@auth0/auth0-react": "^1.2.0",
         "@types/bcrypt": "^3.0.0",
         "@types/cookie-parser": "^1.4.2",
         "@types/cors": "^2.8.9",
