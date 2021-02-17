@@ -15,7 +15,6 @@ import { jwtCheck } from "./config/auth";
 const MongoStore = mongo(session);
 
 // Controllers (route handlers)
-import * as userController from "./controllers/user";
 import * as paletteController from "./controllers/palette";
 import * as groupController from "./controllers/group";
 
@@ -48,12 +47,6 @@ app.use((req, res, next) => {
 
 const allowedOrigins = [process.env.FRONTEND_URL];
 app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: ["Set-Cookie"] })); 
-
-// Authentication routes
-app.post("/register", userController.postRegister);
-app.get("/users/me", jwtCheck, userController.getUsersMe);
-app.post("/login", userController.postLogin);
-app.get("/refresh_token", userController.getRefreshToken);
 
 const paletteRoutes = express.Router();
 paletteRoutes.use(jwtCheck);
