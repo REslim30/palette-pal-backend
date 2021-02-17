@@ -40,7 +40,6 @@ app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(passport.initialize());
 app.use(flash());
 app.use((req, res, next) => {
     res.locals.user = req.user;
