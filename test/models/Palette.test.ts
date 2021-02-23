@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import { PaletteInitializer } from "../util/PaletteInitializer";
-import { UserInitializer } from "../util/UserInitializer";
-import { User } from "../../src/models/User";
 
 let db: mongoose.Connection;
 beforeAll(async () => {
@@ -18,11 +16,6 @@ afterAll(async () => {
 });
 
 describe("Palette document", () => {
-  let user: UserDocument;
-  beforeAll(async () => {
-    user = await new User(new UserInitializer()).save();
-  });
-
   // Reset initializers
   let validPalette: PaletteDocument;
   let paletteInitalizer: PaletteInitializer;
@@ -30,7 +23,7 @@ describe("Palette document", () => {
     await Palette.deleteMany({});
 
     paletteInitalizer = new PaletteInitializer();
-    paletteInitalizer.user = user.id;
+    paletteInitalizer.user = "randomUser";
     validPalette = new Palette(paletteInitalizer);
   });
 
@@ -100,6 +93,21 @@ describe("Palette document", () => {
   test("should throw if color is empty", async () => {
     paletteInitalizer.colors = [];
     await expect(new Palette(paletteInitalizer).save()).rejects.toThrow();
+  });
+
+  test("findOneAndUpdate should update colors", async () => {
+    const palette = await new Palette(paletteInitalizer).save() as any;
+
+    const paletteJSON = palette.toJSON();
+    paletteJSON.colors = [
+      {name: "new-color", shades: ["#ffaffa"]},
+      {name: "second-color", shades: ["#abcdef"]}
+    ];
+
+    palette.set(paletteJSON);
+    const newPalette = await palette.save();
+
+    expect(_.isMatch(newPalette.colors, paletteJSON.colors)).toBe(true);
   });
 
   describe("After saving to database", () => {

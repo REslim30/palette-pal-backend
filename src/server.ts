@@ -1,6 +1,5 @@
 import errorHandler from "errorhandler";
 import app from "./app";
-import startHTTPServer from "./util/startHTTPServer";
 
 
 /**

@@ -16,7 +16,7 @@ const paletteSchema = new Schema({
       message: (props: any) => `${props.path} must be greater than 1.`,
     }
   },
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true }
+  user: { type: String, required: true }
 });
 
 paletteSchema.set("toJSON", toJSONOptions);

@@ -12,8 +12,8 @@ export const deleteGroup = deleteGroupHandler;
 
 function postGroupHandler(req: Request, res: Response, next: NextFunction) {
   Group.create({
-    user: req.user._id,
-    ..._.pick(req.body, ["name", "palettes"]),
+    user: req.user.sub,
+    ..._.pick(req.body, ["name", "palettes", "iconColor"]),
   })
     .then((group) => {
       return res.status(200).send(group.toJSON());
@@ -26,7 +26,7 @@ function postGroupHandler(req: Request, res: Response, next: NextFunction) {
 function getGroupHandler(req: Request, res: Response, next: NextFunction) {
   Group.findOne({
     _id: req.params.id,
-    user: req.user.id,
+    user: req.user.sub,
   })
   .then((group) => {
     if (!group)
@@ -42,14 +42,14 @@ function getGroupHandler(req: Request, res: Response, next: NextFunction) {
 }
 
 function getGroupsHandler(req: Request, res: Response, next: NextFunction) {
-  Group.find({ user: req.user.id }).then((groups) => {
+  Group.find({user: req.user.sub}).then((groups) => {
     return res.status(200).json(groups.map((group) => group.toJSON()));
   });
 }
 
 function putGroupHandler(req: Request, res: Response, next: NextFunction) {
   Group.findOneAndUpdate(
-    { _id: req.params.id, user: req.user.id },
+    { _id: req.params.id, user: req.user.sub },
     { $set: req.body },
     { runValidators: true }
   )
@@ -68,7 +68,7 @@ function putGroupHandler(req: Request, res: Response, next: NextFunction) {
 function deleteGroupHandler(req: Request, res: Response, next: NextFunction) {
   Group.findOneAndDelete({
     _id: req.params.id,
-    user: req.user.id,
+    user: req.user.sub,
   })
   .then((group) => {
     if (!group)

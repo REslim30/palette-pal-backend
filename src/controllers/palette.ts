@@ -13,7 +13,7 @@ function postPalettesHandler(req: Request, res: Response, next: NextFunction) {
   Palette.create({
     name: req.body.name,
     colors: req.body.colors,
-    user: req.user.id,
+    user: req.user.sub,
   })
     .then((palette) => {
       return res.status(200).json(palette.toJSON());
@@ -26,7 +26,7 @@ function postPalettesHandler(req: Request, res: Response, next: NextFunction) {
 function getPaletteHandler(req: Request, res: Response, next: NextFunction) {
   Palette.findOne({
     _id: req.params.id,
-    user: req.user.id,
+    user: req.user.sub,
   })
     .then((palette) => {
       if (palette === null)
@@ -43,7 +43,7 @@ function getPaletteHandler(req: Request, res: Response, next: NextFunction) {
 
 function getPalettesHandler(req: Request, res: Response, next: NextFunction) {
   Palette.find({
-    user: req.user.id,
+    user: req.user.sub,
   }).then((palettes) => {
     return res.status(200).json(palettes.map((palette) => palette.toJSON()));
   });
@@ -52,10 +52,10 @@ function getPalettesHandler(req: Request, res: Response, next: NextFunction) {
 function putPaletteHandler(req: Request, res: Response, next: NextFunction) {
   Palette.findOneAndUpdate(
     {
-      user: req.user.id,
+      user: req.user.sub,
       _id: req.params.id,
     },
-    { $set: req.body },
+    req.body,
     { runValidators: true }
   )
     .then((palette) => {
@@ -73,16 +73,18 @@ function putPaletteHandler(req: Request, res: Response, next: NextFunction) {
 
 function deletePaletteHandler(req: Request, res: Response, next: NextFunction) {
   Palette.findOneAndDelete({
-    user: req.user.id,
-    _id: req.params.id
+    user: req.user.sub,
+    _id: req.params.id,
   })
-  .then((palette) => {
-    if (!palette)
-      return res.status(400).json({ message: "No palette found for id: " + req.params.id });
+    .then((palette) => {
+      if (!palette)
+        return res
+          .status(400)
+          .json({ message: "No palette found for id: " + req.params.id });
 
-    return res.status(200).json(palette.toJSON());    
-  })
-  .catch((err) => {
-    return res.status(400).json(err);
-  });
+      return res.status(200).json(palette.toJSON());
+    })
+    .catch((err) => {
+      return res.status(400).json(err);
+    });
 }

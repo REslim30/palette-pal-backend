@@ -45,8 +45,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const allowedOrigins = [process.env.FRONTEND_URL];
-app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: ["Set-Cookie"] })); 
+app.use(cors()); 
 
 const paletteRoutes = express.Router();
 paletteRoutes.use(jwtCheck);
@@ -58,7 +57,7 @@ paletteRoutes.delete("/:id", paletteController.deletePalette);
 app.use("/palettes", paletteRoutes);
 
 const groupRoutes = express.Router();
-paletteRoutes.use(jwtCheck);
+groupRoutes.use(jwtCheck);
 groupRoutes.post("/", groupController.postGroup);
 groupRoutes.get("/:id", groupController.getGroup);
 groupRoutes.get("/", groupController.getGroups);
