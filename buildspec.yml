@@ -1,0 +1,15 @@
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14.x
+    commands:
+      - npm install
+  build:
+    - npm run build
+  post_build:
+    commands:
+      - rm -rf node_modules
+      - zip -r palette-pal-express.zip *
+artifacts:
+  files:
+    - palette-pal-express.zip
