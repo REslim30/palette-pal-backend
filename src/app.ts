@@ -65,4 +65,7 @@ groupRoutes.put("/:id", groupController.putGroup);
 groupRoutes.delete("/:id", groupController.deleteGroup);
 app.use("/groups", groupRoutes);
 
+// For EB health checks
+app.get("/", (req: Request, res: Response, next: NextFunction)=> res.sendStatus(200));
+
 export default app;
