@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import compression from "compression";  // compresses requests
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -64,4 +64,9 @@ groupRoutes.get("/", groupController.getGroups);
 groupRoutes.put("/:id", groupController.putGroup);
 groupRoutes.delete("/:id", groupController.deleteGroup);
 app.use("/groups", groupRoutes);
+
+
+app.get("/.well-known/pki-validation/8BC996D909C644893B2818B0D20A297B.txt", (req: Request, res: Response, next: NextFunction) => {
+    res.send("B1CC3EC3452D5951CC75A5288A0EC50EC77400573095E4A12197F38EE6BEF109\ncomodoca.com\nI4SMDF9L768E8QBA73SM")
+})
 export default app;
