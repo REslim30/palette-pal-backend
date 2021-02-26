@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, SchemaTypes } from "mongoose";
 import toJSONOptions from "./util/toJSONOptions";
 
 
@@ -16,7 +16,8 @@ const paletteSchema = new Schema({
       message: (props: any) => `${props.path} must be greater than 1.`,
     }
   },
-  user: { type: String, required: true }
+  user: { type: String, required: true },
+  group: { type: Schema.Types.ObjectId, ref: "Group" }
 });
 
 paletteSchema.set("toJSON", toJSONOptions);

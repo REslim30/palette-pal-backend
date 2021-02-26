@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import { PaletteInitializer } from "../util/PaletteInitializer";
+import GroupInitializer from "../util/GroupInitializer";
+import Group from "../../src/models/Group";
 
 let db: mongoose.Connection;
 beforeAll(async () => {
@@ -108,6 +110,16 @@ describe("Palette document", () => {
     const newPalette = await palette.save();
 
     expect(_.isMatch(newPalette.colors, paletteJSON.colors)).toBe(true);
+  });
+
+  test("should have group field", async () => {
+    const groupInitializer = new GroupInitializer();
+    groupInitializer.user = "randomUser";
+    const group = await Group.create(groupInitializer);
+    paletteInitalizer.group = group.id;
+    const palette = await new Palette(paletteInitalizer).save() as any;
+
+    expect(palette.group.toString()).toBe(group.id);
   });
 
   describe("After saving to database", () => {

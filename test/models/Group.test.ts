@@ -1,7 +1,6 @@
 import Group from "../../src/models/Group";
 import { Palette } from "../../src/models/Palette";
 import { PaletteInitializer } from "../util/PaletteInitializer";
-import { User } from "../../src/models/User";
 import { UserInitializer } from "../util/UserInitializer";
 import { connectToMongoDB } from "../util/connectToMongoDB";
 import mongoose from "mongoose";
@@ -21,15 +20,13 @@ describe("Group Model", () => {
   let groupInitializer: any;
   let palette1: PaletteDocument;
   let palette2: PaletteDocument;
-  let user: UserDocument;
   beforeEach(async () => {
-    user = new User(new UserInitializer());
-    palette1 = new Palette(new PaletteInitializer({user: user.id}));
-    palette2 = new Palette(new PaletteInitializer({ user: user.id }));
+    palette1 = new Palette(new PaletteInitializer({user: "testUser"}));
+    palette2 = new Palette(new PaletteInitializer({ user: "testUser" }));
     groupInitializer = { 
       name: "testGroup",
       palettes: [palette1.id, palette2.id],
-      user: user.id
+      user: "testUser"
     };
   });
   
@@ -45,17 +42,10 @@ describe("Group Model", () => {
     return expect(new Group(groupInitializer).validate()).rejects.toThrow();
   });
 
-  test("should have a palettes field", () => {
-    const group = new Group(groupInitializer);
-
-    expect(group.palettes.includes(palette1.id)).toBe(true);
-    expect(group.palettes.includes(palette2.id)).toBe(true);
-  });
-
   test("should have a users field", () => {
     const group = new Group(groupInitializer);
 
-    expect(group.user.toString()).toBe(user.id);
+    expect(group.user.toString()).toBe("testUser");
   });
 
   test("users field should be required", () => {
@@ -70,17 +60,5 @@ describe("Group Model", () => {
 
     expect(groupJSON.id.toString()).toBe(group.id);
     expect(groupJSON._id).toBe(undefined);
-  });
-
-  test("Model should be able to populate fields successfully", async () => {
-    await palette1.save();
-    await palette2.save();
-    await user.save();
-    const group = new Group(groupInitializer);
-    await group.save();
-
-    const groupQuery = await Group.findById(group.id).populate("palettes");
-    expect((groupQuery.palettes[0] as PaletteDocument).toJSON()).toStrictEqual(palette1.toJSON());
-    expect((groupQuery.palettes[1] as PaletteDocument).toJSON()).toStrictEqual(palette2.toJSON());
   });
 });

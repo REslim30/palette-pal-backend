@@ -2,6 +2,7 @@ export class PaletteInitializer {
   name: string;
   colors: Color[];
   user: string;
+  group: string;
 
   constructor(props: {name?: string; colors?: Color[]; user?: string} = {}) {
     this.name = props.name || "Example Palette";
