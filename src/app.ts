@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import compression from "compression";  // compresses requests
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -64,4 +64,8 @@ groupRoutes.get("/", groupController.getGroups);
 groupRoutes.put("/:id", groupController.putGroup);
 groupRoutes.delete("/:id", groupController.deleteGroup);
 app.use("/groups", groupRoutes);
+
+// For EB health checks
+app.get("/", (req: Request, res: Response, next: NextFunction)=> res.sendStatus(200));
+
 export default app;

@@ -13,7 +13,6 @@ if (process.env.NODE_ENV === "development") {
 /**
  * Start Express server.
  */
-console.log("mongo db uri:" + process.env.MONGODB_URI);
 const server = app.listen(app.get("port"), () => {
     console.log(
         "  App is running at http://localhost:%d in %s mode",
