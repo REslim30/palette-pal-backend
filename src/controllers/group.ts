@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import checkJSON from "../middleware/checkJSON";
 import { compose } from "compose-middleware";
 import _ from "lodash";
+import { Palette } from "src/models/Palette";
 
 export const postGroup = compose([checkJSON, postGroupHandler]);
 export const getGroup = getGroupHandler;
@@ -13,7 +14,7 @@ export const deleteGroup = deleteGroupHandler;
 function postGroupHandler(req: Request, res: Response, next: NextFunction) {
   Group.create({
     user: req.user.sub,
-    ..._.pick(req.body, ["name", "palettes", "iconColor"]),
+    ..._.pick(req.body, ["name", "iconColor"]),
   })
     .then((group) => {
       return res.status(200).send(group.toJSON());
@@ -23,22 +24,25 @@ function postGroupHandler(req: Request, res: Response, next: NextFunction) {
     });
 }
 
-function getGroupHandler(req: Request, res: Response, next: NextFunction) {
-  Group.findOne({
-    _id: req.params.id,
-    user: req.user.sub,
-  })
-  .then((group) => {
+async function getGroupHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const group = await Group.findOne({
+      _id: req.params.id,
+      user: req.user.sub,
+    })
     if (!group)
       return res
         .status(400)
         .json({ message: "No group found for id: " + req.params.id });
+    
+    const result = group.toJSON();
 
-    return res.status(200).json(group.toJSON());
-  })
-  .catch((err) => {
+    result.palettes = await Palette.find({ group: group.id });
+
+    return res.status(200).json(result);
+  } catch (err) {
     return res.status(400).json(err);
-  });
+  };
 }
 
 function getGroupsHandler(req: Request, res: Response, next: NextFunction) {
