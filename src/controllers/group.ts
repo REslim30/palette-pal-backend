@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import checkJSON from "../middleware/checkJSON";
 import { compose } from "compose-middleware";
 import _ from "lodash";
-import { Palette } from "src/models/Palette";
+import { Palette } from "../models/Palette";
 
 export const postGroup = compose([checkJSON, postGroupHandler]);
 export const getGroup = getGroupHandler;
@@ -29,7 +29,7 @@ async function getGroupHandler(req: Request, res: Response, next: NextFunction) 
     const group = await Group.findOne({
       _id: req.params.id,
       user: req.user.sub,
-    })
+    });
     if (!group)
       return res
         .status(400)
@@ -45,10 +45,21 @@ async function getGroupHandler(req: Request, res: Response, next: NextFunction) 
   };
 }
 
-function getGroupsHandler(req: Request, res: Response, next: NextFunction) {
-  Group.find({user: req.user.sub}).then((groups) => {
-    return res.status(200).json(groups.map((group) => group.toJSON()));
-  });
+async function getGroupsHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const groups = await Group.find({user: req.user.sub});
+    const groupsJSON = groups.map((group) => group.toJSON());
+    const palettePromises = groups.map((group) => Palette.find({ group: group.id }));
+    
+    const groupPalettes = await Promise.all(palettePromises);
+    const result = _.zipWith(groupsJSON, groupPalettes, (group, palettes) => {
+      group.palettes = palettes;
+      return group;
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function putGroupHandler(req: Request, res: Response, next: NextFunction) {

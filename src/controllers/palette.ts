@@ -13,6 +13,7 @@ function postPalettesHandler(req: Request, res: Response, next: NextFunction) {
   Palette.create({
     name: req.body.name,
     colors: req.body.colors,
+    group: req.body.group,
     user: req.user.sub,
   })
     .then((palette) => {
